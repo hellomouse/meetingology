@@ -28,25 +28,39 @@
 # POSSIBILITY OF SUCH DAMAGE.
 ###
 
-import os, re, time
+import os
+import re
+import time
 import textwrap
 
 from . import __version__
 
 # Data sanitizing for various output methods
+
+
 def html(text):
     """Escape bad sequences (in HTML) in user-generated lines."""
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
 rstReplaceRE = re.compile('_( |-|$)')
+
+
 def rst(text):
     """Escapes bad sequences in reST"""
     return rstReplaceRE.sub(r'\_\1', text)
+
+
 def text(text):
     """Escapes bad sequences in text (not implemented yet)"""
     return text
+
+
 def mw(text):
     """Escapes bad sequences in MediaWiki markup (not implemented yet)"""
     return text
+
+
 def moin(text):
     """Escapes bad sequences in Moin Moin wiki markup (not implemented yet)"""
     return text
@@ -56,16 +70,20 @@ def moin(text):
 class TextWrapper(textwrap.TextWrapper):
     wordsep_re = re.compile(r'(\s+)')
 
+
 def wrapList(item, indent=0):
     return TextWrapper(width=72, initial_indent=' '*indent,
                        subsequent_indent=' '*(indent+2),
                        break_long_words=False).fill(item)
 
+
 def indentItem(item, indent=0):
     return ' '*indent + item
 
+
 def replaceWRAP(item):
     re_wrap = re.compile(r'sWRAPs(.*)eWRAPe', re.DOTALL)
+
     def repl(m):
         return TextWrapper(width=72, break_long_words=False).fill(m.group(1))
     return re_wrap.sub(repl, item)
@@ -97,22 +115,22 @@ class _BaseWriter(object):
         return "%s meeting" % self.M.channel
 
     def replacements(self):
-        return {'pageTitle':self.pagetitle,
-                'owner':self.M.owner,
-                'starttime':time.strftime("%H:%M:%S", self.M.starttime),
-                'starttimeshort':time.strftime("%H:%M", self.M.starttime),
-                'startdate':time.strftime("%d %b", self.M.starttime),
-                'endtime':time.strftime("%H:%M:%S", self.M.endtime),
-                'endtimeshort':time.strftime("%H:%M", self.M.endtime),
-                'timeZone':self.M.config.timeZone,
-                'fullLogs':self.M.config.basename+'.log.html',
-                'fullLogsFullURL':self.M.config.filename(url=True)+'.log.html',
-                'MeetBotInfoURL':self.M.config.MeetBotInfoURL,
-                'MeetBotVersion':__version__,
-             }
+        return {'pageTitle': self.pagetitle,
+                'owner': self.M.owner,
+                'starttime': time.strftime("%H:%M:%S", self.M.starttime),
+                'starttimeshort': time.strftime("%H:%M", self.M.starttime),
+                'startdate': time.strftime("%d %b", self.M.starttime),
+                'endtime': time.strftime("%H:%M:%S", self.M.endtime),
+                'endtimeshort': time.strftime("%H:%M", self.M.endtime),
+                'timeZone': self.M.config.timeZone,
+                'fullLogs': self.M.config.basename+'.log.html',
+                'fullLogsFullURL': self.M.config.filename(url=True)+'.log.html',
+                'MeetBotInfoURL': self.M.config.MeetBotInfoURL,
+                'MeetBotVersion': __version__,
+                }
 
     def iterNickCounts(self):
-        nicks = [ (n,c) for (n,c) in list(self.M.attendees.items()) ]
+        nicks = [(n, c) for (n, c) in list(self.M.attendees.items())]
         nicks.sort(key=lambda x: x[1], reverse=True)
         return nicks
 
@@ -121,36 +139,40 @@ class _BaseWriter(object):
             def nickitems():
                 for m in self.M.minutes:
                     # The hack below is needed because of pickling problems
-                    if m.itemtype != "ACTION": continue
+                    if m.itemtype != "ACTION":
+                        continue
                     if not re.match(r'.*\b%s\b.*' % re.escape(nick), m.line, re.I):
                         continue
                     m.assigned = True
                     yield m
             yield nick, nickitems()
+
     def iterActionItemsUnassigned(self):
         for m in self.M.minutes:
-            if m.itemtype != "ACTION": continue
-            if getattr(m, 'assigned', False): continue
+            if m.itemtype != "ACTION":
+                continue
+            if getattr(m, 'assigned', False):
+                continue
             yield m
 
     def get_template(self, escape=lambda s: s):
         M = self.M
         repl = self.replacements()
 
-        MeetingItems = [ ]
+        MeetingItems = []
         # We can have initial items with NO initial topic.  This
         # messes up the templating, so, have this null topic as a
         # stopgap measure.
-        nextTopic = {'topic':{'itemtype':'TOPIC', 'topic':'Prologue',
-                              'nick':'',
-                              'time':'', 'link':'', 'anchor':''},
-                     'items':[]}
+        nextTopic = {'topic': {'itemtype': 'TOPIC', 'topic': 'Prologue',
+                               'nick': '',
+                               'time': '', 'link': '', 'anchor': ''},
+                     'items': []}
         haveTopic = False
         for m in M.minutes:
             if m.itemtype == "TOPIC":
                 if nextTopic['topic']['nick'] or nextTopic['items']:
                     MeetingItems.append(nextTopic)
-                nextTopic = {'topic':m.template(M, escape), 'items':[]}
+                nextTopic = {'topic': m.template(M, escape), 'items': []}
                 haveTopic = True
             else:
                 nextTopic['items'].append(m.template(M, escape))
@@ -182,31 +204,32 @@ class _BaseWriter(object):
         #                      (that isn't a URL)
         #              'url_quoteescaped': 'url' but with " escaped for use in
         #                                  <a href="$url_quoteescaped">
-        ActionItems = [ ]
+        ActionItems = []
         for m in M.minutes:
-            if m.itemtype != "ACTION": continue
+            if m.itemtype != "ACTION":
+                continue
             ActionItems.append(escape(m.line))
         repl['ActionItems'] = ActionItems
         # Format of ActionItems: It's just a very simple list of lines.
         # [line, line, line, ...]
         # line = (string of what it is)
 
-        ActionItemsPerson = [ ]
+        ActionItemsPerson = []
         numberAssigned = 0
         for nick, items in self.iterActionItemsNick():
-            thisNick = {'nick':escape(nick), 'items':[]}
+            thisNick = {'nick': escape(nick), 'items': []}
             for m in items:
                 numberAssigned += 1
                 thisNick['items'].append(escape(m.line))
             if len(thisNick['items']) > 0:
                 ActionItemsPerson.append(thisNick)
         # Work on the unassigned nicks.
-        thisNick = {'nick':'UNASSIGNED', 'items':[]}
+        thisNick = {'nick': 'UNASSIGNED', 'items': []}
         for m in self.iterActionItemsUnassigned():
             thisNick['items'].append(escape(m.line))
         if len(thisNick['items']) > 1:
             ActionItemsPerson.append(thisNick)
-        #if numberAssigned == 0:
+        # if numberAssigned == 0:
         #    ActionItemsPerson = None
         repl['ActionItemsPerson'] = ActionItemsPerson
         # Format of ActionItemsPerson
@@ -224,8 +247,8 @@ class _BaseWriter(object):
         PeoplePresent = []
         # sort by number of lines spoken
         for nick, count in self.iterNickCounts():
-            PeoplePresent.append({'nick':escape(nick),
-                                  'count':count})
+            PeoplePresent.append({'nick': escape(nick),
+                                  'count': count})
         repl['PeoplePresent'] = PeoplePresent
         # Format of PeoplePresent
         # [{'nick':the_nick, 'count':count_of_lines_said},
@@ -239,13 +262,13 @@ class _BaseWriter(object):
         # let's make the data structure easier to use in the template
         repl = self.get_template(escape=escape)
         repl = {
-        'time':           { 'start': repl['starttime'], 'end': repl['endtime'], 'timezone': repl['timeZone'] },
-        'meeting':        { 'title': repl['pageTitle'], 'owner': repl['owner'], 'logs': repl['fullLogs'], 'logsFullURL': repl['fullLogsFullURL'] },
-        'attendees':      [ person for person in repl['PeoplePresent'] ],
-        'agenda':         [ { 'topic': item['topic'], 'notes': item['items'] } for item in repl['MeetingItems'] ],
-        'actions':        [ action for action in repl['ActionItems'] ],
-        'actions_person': [ { 'nick': attendee['nick'], 'actions': attendee['items'] } for attendee in repl['ActionItemsPerson'] ],
-        'meetbot':        { 'version': repl['MeetBotVersion'], 'url': repl['MeetBotInfoURL'] },
+            'time':           {'start': repl['starttime'], 'end': repl['endtime'], 'timezone': repl['timeZone']},
+            'meeting':        {'title': repl['pageTitle'], 'owner': repl['owner'], 'logs': repl['fullLogs'], 'logsFullURL': repl['fullLogsFullURL']},
+            'attendees':      [person for person in repl['PeoplePresent']],
+            'agenda':         [{'topic': item['topic'], 'notes': item['items']} for item in repl['MeetingItems']],
+            'actions':        [action for action in repl['ActionItems']],
+            'actions_person': [{'nick': attendee['nick'], 'actions': attendee['items']} for attendee in repl['ActionItemsPerson']],
+            'meetbot':        {'version': repl['MeetBotVersion'], 'url': repl['MeetBotInfoURL']},
         }
         return repl
 
@@ -266,6 +289,7 @@ class Template(_BaseWriter):
     If a template ends in .txt, parse with a text-based genshi
     templater.  Otherwise, parse with a HTML-based genshi templater.
     """
+
     def format(self, extension=None, template='+template.html'):
         repl = self.get_template2()
 
@@ -277,7 +301,7 @@ class Template(_BaseWriter):
         # below, then f.close() will fail and mask the original
         # exception
         if not os.access(template, os.F_OK):
-            raise IOError('File not found: %s'%template)
+            raise IOError('File not found: %s' % template)
 
         # Do we want to use a text template or HTML ?
         import genshi.template
@@ -303,6 +327,7 @@ class _CSSmanager(object):
         %s
         </style>
         ''')
+
     def getCSS(self, name):
         cssfile = getattr(self.M.config, 'cssFile_'+name, '')
         if cssfile.lower() == 'none':
@@ -320,11 +345,11 @@ class _CSSmanager(object):
                 # external stylesheet
                 with open(css_fname) as f:
                     css = f.read()
-                return self._css_head%css
+                return self._css_head % css
             else:
                 # linked stylesheet
                 css_head = ('''<link rel="stylesheet" type="text/css" '''
-                            '''href="%s">'''%cssfile)
+                            '''href="%s">''' % cssfile)
                 return css_head
         except Exception as exc:
             if not self.M.config.safeMode:
@@ -336,7 +361,7 @@ class _CSSmanager(object):
                 css_fname = os.path.join(os.path.dirname(__file__),
                                          'css-'+name+'-default.css')
                 css = open(css_fname).read()
-                return self._css_head%css
+                return self._css_head % css
             except:
                 if not self.M.config.safeMode:
                     raise
@@ -371,13 +396,13 @@ class HTMLlog1(_BaseWriter):
                                   outencoding=self.M.config.output_codec)
         Lexer = IrcLogsLexer
         Lexer.tokens['msg'][1:1] = \
-           [ # match:   #topic commands
+            [  # match:   #topic commands
             (r"(\#topic[ \t\f\v]*)(.*\n)",
              bygroups(token.Keyword, token.Generic.Heading), '#pop'),
-             # match:   #command   (others)
+            # match:   #command   (others)
             (r"(\#[^\s]+[ \t\f\v]*)(.*\n)",
              bygroups(token.Keyword, token.Generic.Strong), '#pop'),
-           ]
+        ]
         lexer = Lexer()
         #from rkddp.interact import interact ; interact()
         out = pygments.highlight("\n".join(M.lines), lexer, formatter)
@@ -389,9 +414,9 @@ class HTMLlog1(_BaseWriter):
         # format in.  Thanks to a comment on the blog of Francis
         # Giannaros (http://francis.giannaros.org) for the suggestion
         # and instructions for how.
-        out,n = re.subn(r"(\n\s*pre\s*\{[^}]+;\s*)(\})",
-                        r"\1\n      white-space: pre-wrap;\2",
-                        out, count=1)
+        out, n = re.subn(r"(\n\s*pre\s*\{[^}]+;\s*)(\})",
+                         r"\1\n      white-space: pre-wrap;\2",
+                         out, count=1)
         if n == 0:
             out = re.sub(r"(\n\s*</style>)",
                          r"\npre { white-space: pre-wrap; }\1",
@@ -403,7 +428,7 @@ class HTMLlog2(_BaseWriter, _CSSmanager):
     def format(self, extension=None):
         """Write pretty HTML logs."""
         M = self.M
-        lines = [ ]
+        lines = []
         line_re = re.compile(r"""\s*
             (?P<time> \[?[0-9:\s]*\]?)\s*
             (?P<nick>\s+<[@+\s]?[^>]+>)\s*
@@ -413,7 +438,7 @@ class HTMLlog2(_BaseWriter, _CSSmanager):
             (?P<time> \[?[0-9:\s]*\]?)\s*
             (?P<nick>\*\s+[@+\s]?[^\s]+)\s*
             (?P<line>.*)
-        """,re.VERBOSE)
+        """, re.VERBOSE)
         command_re = re.compile(r"(#[^\s]+[ \t\f\v]*)(.*)")
         command_topic_re = re.compile(r"(#topic[ \t\f\v]*)(.*)")
         hilight_re = re.compile(r"([^\s]+:)( .*)")
@@ -448,11 +473,11 @@ class HTMLlog2(_BaseWriter, _CSSmanager):
                 lines.append('<a href="#l-%(lineno)s" name="l-%(lineno)s">'
                              '<span class="tm">%(time)s</span></a>'
                              '<span class="nk">%(nick)s</span> '
-                             '%(line)s'%{'lineno':lineNumber,
-                                         'time':html(m.group('time')),
-                                         'nick':html(m.group('nick')),
-                                         'line':outline,
-                                         })
+                             '%(line)s' % {'lineno': lineNumber,
+                                           'time': html(m.group('time')),
+                                           'nick': html(m.group('nick')),
+                                           'line': outline,
+                                           })
                 continue
             m = action_re.match(l)
             # is it a action line?
@@ -460,23 +485,24 @@ class HTMLlog2(_BaseWriter, _CSSmanager):
                 lines.append('<a name="l-%(lineno)s"></a>'
                              '<span class="tm">%(time)s</span>'
                              '<span class="nka">%(nick)s</span> '
-                             '<span class="ac">%(line)s</span>'%
-                               {'lineno':lineNumber,
-                                'time':html(m.group('time')),
-                                'nick':html(m.group('nick')),
-                                'line':html(m.group('line')),
-                                })
+                             '<span class="ac">%(line)s</span>' %
+                             {'lineno': lineNumber,
+                              'time': html(m.group('time')),
+                              'nick': html(m.group('nick')),
+                              'line': html(m.group('line')),
+                              })
                 continue
             print(l)
             print(m.groups())
             print("**error**", l)
 
         css = self.getCSS(name='log')
-        return html_template%{'pageTitle':"%s log"%html(M.channel),
-                              #'body':"<br>\n".join(lines),
-                              'body':"<pre>"+("\n".join(lines))+"</pre>",
-                              'headExtra':css,
-                              }
+        return html_template % {'pageTitle': "%s log" % html(M.channel),
+                                # 'body':"<br>\n".join(lines),
+                                'body': "<pre>"+("\n".join(lines))+"</pre>",
+                                'headExtra': css,
+                                }
+
 
 HTMLlog = HTMLlog2
 
@@ -548,61 +574,66 @@ class HTML1(_BaseWriter):
         M = self.M
 
         # Add all minute items to the table
-        MeetingItems = [ ]
+        MeetingItems = []
         for m in M.minutes:
             MeetingItems.append(m.html(M))
         MeetingItems = "\n".join(MeetingItems)
 
         # Action Items
-        ActionItems = [ ]
+        ActionItems = []
         for m in M.minutes:
             # The hack below is needed because of pickling problems
-            if m.itemtype != "ACTION": continue
+            if m.itemtype != "ACTION":
+                continue
             ActionItems.append(wrapList("<li>%s</li>" % html(m.line), 2))
         if not ActionItems:
             ActionItems.append(indentItem("<li>(None)</li>", 2))
         ActionItems = "\n".join(ActionItems)
 
         # Action Items, by person (This could be made lots more efficient)
-        ActionItemsPerson = [ ]
+        ActionItemsPerson = []
         for nick, items in self.iterActionItemsNick():
             headerPrinted = False
             for m in items:
                 if not headerPrinted:
-                    ActionItemsPerson.append(indentItem('<li>%s<ol type="a">' % html(nick), 2))
+                    ActionItemsPerson.append(indentItem(
+                        '<li>%s<ol type="a">' % html(nick), 2))
                     headerPrinted = True
-                ActionItemsPerson.append(wrapList("<li>%s</li>" % html(m.line), 4))
+                ActionItemsPerson.append(
+                    wrapList("<li>%s</li>" % html(m.line), 4))
             if headerPrinted:
                 ActionItemsPerson.append(indentItem("</ol></li>", 2))
         if not ActionItemsPerson:
             ActionItemsPerson.append(indentItem("<li>(None)</li>", 2))
         else:
             # Unassigned items
-            Unassigned = [ ]
+            Unassigned = []
             for m in self.iterActionItemsUnassigned():
                 Unassigned.append(wrapList("<li>%s</li>" % html(m.line), 4))
             if Unassigned:
-                Unassigned.insert(0, indentItem("<li><b>UNASSIGNED</b><ol>", 2))
+                Unassigned.insert(0, indentItem(
+                    "<li><b>UNASSIGNED</b><ol>", 2))
                 Unassigned.append(indentItem('</ol></li>', 2))
                 ActionItemsPerson.extend(Unassigned)
         ActionItemsPerson = "\n".join(ActionItemsPerson)
 
         # People Attending
-        PeoplePresent = [ ]
+        PeoplePresent = []
         # sort by number of lines spoken
         for nick, count in self.iterNickCounts():
-            PeoplePresent.append(indentItem('<li>%s (%d)</li>' % (html(nick), count), 2))
+            PeoplePresent.append(indentItem(
+                '<li>%s (%d)</li>' % (html(nick), count), 2))
         PeoplePresent = "\n".join(PeoplePresent)
 
         # Actual formatting and replacement
         repl = self.replacements()
-        repl.update({'MeetingItems':MeetingItems,
-                     'ActionItems':ActionItems,
-                     'ActionItemsPerson':ActionItemsPerson,
-                     'PeoplePresent':PeoplePresent,
+        repl.update({'MeetingItems': MeetingItems,
+                     'ActionItems': ActionItems,
+                     'ActionItemsPerson': ActionItemsPerson,
+                     'PeoplePresent': PeoplePresent,
                      })
         body = self.body
-        body = body%repl
+        body = body % repl
         body = replaceWRAP(body)
 
         return body
@@ -610,12 +641,13 @@ class HTML1(_BaseWriter):
 
 class HTML2(_BaseWriter, _CSSmanager):
     """HTML formatter without tables."""
+
     def meetingItems(self):
         """Return the main 'Meeting minutes' block."""
         M = self.M
 
         # Add all minute items to the table
-        MeetingItems = [ ]
+        MeetingItems = []
         MeetingItems.append(self.heading('Meeting summary'))
         MeetingItems.append("<ol>")
 
@@ -660,8 +692,10 @@ class HTML2(_BaseWriter, _CSSmanager):
                         MeetingItems.append(indentItem('<ol type="i">', 8))
                         inSubsublist = True
                     item = wrapList(item, 10)+"</li>"
-                elif haveTopic: item = wrapList(item, 6)+"</li>"
-                else:           item = wrapList(item, 2)+"</li>"
+                elif haveTopic:
+                    item = wrapList(item, 6)+"</li>"
+                else:
+                    item = wrapList(item, 2)+"</li>"
             MeetingItems.append(item)
 
         if haveSubtopic:
@@ -680,16 +714,18 @@ class HTML2(_BaseWriter, _CSSmanager):
     def votes(self):
         M = self.M
         # Votes
-        Votes = [ ]
+        Votes = []
         # reversed to show the oldest first
         for v, (vsum, vline) in list(M.votes.items()):
             voteLink = "%(fullLogs)s" % self.replacements()
-            Votes.append(wrapList("<li><a href='%s#%d'>%s</a>" % (voteLink, vline, html(v)), 2))
+            Votes.append(wrapList("<li><a href='%s#%d'>%s</a>" %
+                         (voteLink, vline, html(v)), 2))
             # differentiate denied votes somehow, strikethrough perhaps?
             Votes.append(wrapList("<ul><li>%s" % html(vsum), 4))
             if M.publicVoters[v]:
                 publicVoters = ', '.join(M.publicVoters[v])
-                Votes.append(wrapList("<ul><li>Voters: %s</li></ul>" % html(publicVoters), 6))
+                Votes.append(wrapList("<ul><li>Voters: %s</li></ul>" %
+                             html(publicVoters), 6))
         if not Votes:
             return None
         Votes.insert(0, '<ol>')
@@ -704,10 +740,11 @@ class HTML2(_BaseWriter, _CSSmanager):
         """Return the 'Action items' block."""
         M = self.M
         # Action Items
-        ActionItems = [ ]
+        ActionItems = []
         for m in M.minutes:
             # The hack below is needed because of pickling problems
-            if m.itemtype != "ACTION": continue
+            if m.itemtype != "ACTION":
+                continue
             ActionItems.append(wrapList("<li>%s</li>" % html(m.line), 2))
         if not ActionItems:
             return None
@@ -721,21 +758,23 @@ class HTML2(_BaseWriter, _CSSmanager):
         """Return the 'Action items, by person' block."""
         M = self.M
         # Action Items, by person (This could be made lots more efficient)
-        ActionItemsPerson = [ ]
+        ActionItemsPerson = []
         for nick, items in self.iterActionItemsNick():
             headerPrinted = False
             for m in items:
                 if not headerPrinted:
-                    ActionItemsPerson.append(indentItem('<li>%s<ol type="a">' % html(nick), 2))
+                    ActionItemsPerson.append(indentItem(
+                        '<li>%s<ol type="a">' % html(nick), 2))
                     headerPrinted = True
-                ActionItemsPerson.append(wrapList("<li>%s</li>" % html(m.line), 4))
+                ActionItemsPerson.append(
+                    wrapList("<li>%s</li>" % html(m.line), 4))
             if headerPrinted:
                 ActionItemsPerson.append(indentItem('</ol></li>', 2))
         if not ActionItemsPerson:
             return None
 
         # Unassigned items
-        Unassigned = [ ]
+        Unassigned = []
         for m in self.iterActionItemsUnassigned():
             Unassigned.append(wrapList("<li>%s</li>" % html(m.line), 4))
         if Unassigned:
@@ -752,11 +791,12 @@ class HTML2(_BaseWriter, _CSSmanager):
     def doneItems(self):
         M = self.M
         # Done Items
-        DoneItems = [ ]
+        DoneItems = []
         for m in M.minutes:
             # The hack below is needed because of pickling problems
-            if m.itemtype != "DONE": continue
-            #already escaped
+            if m.itemtype != "DONE":
+                continue
+            # already escaped
             DoneItems.append(wrapList("<li>%s</li>" % html(m.line), 2))
         if not DoneItems:
             return None
@@ -774,7 +814,8 @@ class HTML2(_BaseWriter, _CSSmanager):
         PeoplePresent.append('<ol>')
         # sort by number of lines spoken
         for nick, count in self.iterNickCounts():
-            PeoplePresent.append(indentItem('<li>%s (%d)</li>' % (html(nick), count), 2))
+            PeoplePresent.append(indentItem(
+                '<li>%s (%d)</li>' % (html(nick), count), 2))
         PeoplePresent.append('</ol>')
         PeoplePresent = "\n".join(PeoplePresent)
         return PeoplePresent
@@ -788,24 +829,24 @@ class HTML2(_BaseWriter, _CSSmanager):
 
         repl = self.replacements()
 
-        body = [ ]
+        body = []
         body.append(textwrap.dedent("""\
             <h1>%(pageTitle)s</h1>
             <span class="details">
             Meeting started by %(owner)s at %(starttime)s %(timeZone)s
-            (<a href="%(fullLogs)s">full logs</a>)</span>"""%repl))
+            (<a href="%(fullLogs)s">full logs</a>)</span>""" % repl))
         body.append(self.meetingItems())
         body.append(textwrap.dedent("""\
             <span class="details">
             Meeting ended at %(endtime)s %(timeZone)s
-            (<a href="%(fullLogs)s">full logs</a>)</span>"""%repl))
+            (<a href="%(fullLogs)s">full logs</a>)</span>""" % repl))
         body.append(self.actionItems())
         body.append(self.actionItemsPerson())
         body.append(self.peoplePresent())
         body.append("""<span class="details">"""
                     """Generated by <a href="%(MeetBotInfoURL)s">MeetBot</a> """
-                    """%(MeetBotVersion)s</span>"""%repl)
-        body = [ b for b in body if b is not None ]
+                    """%(MeetBotVersion)s</span>""" % repl)
+        body = [b for b in body if b is not None]
         body = "\n<br><br>\n\n\n\n".join(body)
         body = replaceWRAP(body)
 
@@ -816,6 +857,7 @@ class HTML2(_BaseWriter, _CSSmanager):
         html = html_template % repl
 
         return html
+
 
 HTML = HTML2
 
@@ -876,9 +918,9 @@ class ReST(_BaseWriter):
         """Return a ReStructured Text minutes summary."""
         M = self.M
         # Agenda items
-        MeetingItems = [ ]
-        M.rst_urls = [ ]
-        M.rst_refs = { }
+        MeetingItems = []
+        M.rst_urls = []
+        M.rst_refs = {}
         haveTopic = False
         for m in M.minutes:
             item = "* "+m.rst(M)
@@ -888,8 +930,10 @@ class ReST(_BaseWriter):
                 item = wrapList(item, 0)
                 haveTopic = True
             else:
-                if haveTopic: item = wrapList(item, 2)
-                else:         item = wrapList(item, 0)
+                if haveTopic:
+                    item = wrapList(item, 2)
+                else:
+                    item = wrapList(item, 0)
             MeetingItems.append(item)
         MeetingItems = "\n\n".join(MeetingItems)
         MeetingURLs = "\n".join(M.rst_urls)
@@ -897,61 +941,65 @@ class ReST(_BaseWriter):
         MeetingItems += "\n\n"+MeetingURLs
 
         # Action Items
-        ActionItems = [ ]
+        ActionItems = []
         for m in M.minutes:
             # The hack below is needed because of pickling problems
-            if m.itemtype != "ACTION": continue
-            #already escaped
-            ActionItems.append(wrapList("* %s"%rst(m.line), 0))
+            if m.itemtype != "ACTION":
+                continue
+            # already escaped
+            ActionItems.append(wrapList("* %s" % rst(m.line), 0))
         if not ActionItems:
             ActionItems.append("* (None)")
         ActionItems = "\n\n".join(ActionItems)
 
         # Action Items, by person (This could be made lots more efficient)
-        ActionItemsPerson = [ ]
+        ActionItemsPerson = []
         for nick in sorted(list(M.attendees.keys()), key=lambda x: x.lower()):
             headerPrinted = False
             for m in M.minutes:
                 # The hack below is needed because of pickling problems
-                if m.itemtype != "ACTION": continue
+                if m.itemtype != "ACTION":
+                    continue
                 if not re.match(r'.*\b%s\b.*' % re.escape(nick), m.line, re.I):
                     continue
                 if not headerPrinted:
-                    ActionItemsPerson.append("* %s"%rst(nick))
+                    ActionItemsPerson.append("* %s" % rst(nick))
                     headerPrinted = True
-                ActionItemsPerson.append(wrapList("* %s"%rst(m.line), 2))
+                ActionItemsPerson.append(wrapList("* %s" % rst(m.line), 2))
                 m.assigned = True
         if not ActionItemsPerson:
             ActionItemsPerson.append("* (None)")
         else:
             # Unassigned items
-            Unassigned = [ ]
+            Unassigned = []
             for m in M.minutes:
-                if m.itemtype != "ACTION": continue
-                if getattr(m, 'assigned', False): continue
-                Unassigned.append(wrapList("* %s"%rst(m.line), 2))
+                if m.itemtype != "ACTION":
+                    continue
+                if getattr(m, 'assigned', False):
+                    continue
+                Unassigned.append(wrapList("* %s" % rst(m.line), 2))
             if Unassigned:
                 Unassigned.insert(0, "* **UNASSIGNED**")
                 ActionItemsPerson.extend(Unassigned)
         ActionItemsPerson = "\n\n".join(ActionItemsPerson)
 
         # People Attending
-        PeoplePresent = [ ]
+        PeoplePresent = []
         # sort by number of lines spoken
         for nick, count in self.iterNickCounts():
-            PeoplePresent.append('* %s (%d)'%(rst(nick), count))
+            PeoplePresent.append('* %s (%d)' % (rst(nick), count))
         PeoplePresent = "\n\n".join(PeoplePresent)
 
         # Actual formatting and replacement
         repl = self.replacements()
-        repl.update({'titleBlock':('='*len(repl['pageTitle'])),
-                     'MeetingItems':MeetingItems,
-                     'ActionItems':ActionItems,
-                     'ActionItemsPerson':ActionItemsPerson,
-                     'PeoplePresent':PeoplePresent,
+        repl.update({'titleBlock': ('='*len(repl['pageTitle'])),
+                     'MeetingItems': MeetingItems,
+                     'ActionItems': ActionItems,
+                     'ActionItemsPerson': ActionItemsPerson,
+                     'PeoplePresent': PeoplePresent,
                      })
         body = self.body
-        body = body%repl
+        body = body % repl
         body = replaceWRAP(body)
         return body
 
@@ -959,12 +1007,12 @@ class ReST(_BaseWriter):
 class HTMLfromReST(_BaseWriter):
     def format(self, extension=None):
         M = self.M
-        import docutils.core
+        import docutils
         rst = ReST(M).format(extension)
         rstToHTML = docutils.core.publish_string(rst, writer_name='html',
-                             settings_overrides={'file_insertion_enabled': 0,
-                                                 'raw_enabled': 0,
-                                'output_encoding':self.M.config.output_codec})
+                                                 settings_overrides={'file_insertion_enabled': 0,
+                                                                     'raw_enabled': 0,
+                                                                     'output_encoding': self.M.config.output_codec})
         return rstToHTML
 
 
@@ -972,7 +1020,7 @@ class Text(_BaseWriter):
     def meetingItems(self):
         M = self.M
         # Agenda items
-        MeetingItems = [ ]
+        MeetingItems = []
         MeetingItems.append(self.heading('Meeting summary'))
         haveTopic = False
         for m in M.minutes:
@@ -983,8 +1031,10 @@ class Text(_BaseWriter):
                 item = wrapList(item, 0)
                 haveTopic = True
             else:
-                if haveTopic: item = wrapList(item, 2)
-                else:         item = wrapList(item, 0)
+                if haveTopic:
+                    item = wrapList(item, 2)
+                else:
+                    item = wrapList(item, 0)
             MeetingItems.append(item)
         MeetingItems = "\n".join(MeetingItems)
         return MeetingItems
@@ -992,12 +1042,13 @@ class Text(_BaseWriter):
     def actionItems(self):
         M = self.M
         # Action Items
-        ActionItems = [ ]
+        ActionItems = []
         for m in M.minutes:
             # The hack below is needed because of pickling problems
-            if m.itemtype != "ACTION": continue
-            #already escaped
-            ActionItems.append(wrapList("* %s"%text(m.line), 0))
+            if m.itemtype != "ACTION":
+                continue
+            # already escaped
+            ActionItems.append(wrapList("* %s" % text(m.line), 0))
         if not ActionItems:
             return None
         ActionItems.insert(0, self.heading('Action items'))
@@ -1007,28 +1058,31 @@ class Text(_BaseWriter):
     def actionItemsPerson(self):
         M = self.M
         # Action Items, by person (This could be made lots more efficient)
-        ActionItemsPerson = [ ]
+        ActionItemsPerson = []
         for nick in sorted(list(M.attendees.keys()), key=lambda x: x.lower()):
             headerPrinted = False
             for m in M.minutes:
                 # The hack below is needed because of pickling problems
-                if m.itemtype != "ACTION": continue
+                if m.itemtype != "ACTION":
+                    continue
                 if not re.match(r'.*\b%s\b.*' % re.escape(nick), m.line, re.I):
                     continue
                 if not headerPrinted:
-                    ActionItemsPerson.append("* %s"%text(nick))
+                    ActionItemsPerson.append("* %s" % text(nick))
                     headerPrinted = True
-                ActionItemsPerson.append(wrapList("* %s"%text(m.line), 2))
+                ActionItemsPerson.append(wrapList("* %s" % text(m.line), 2))
                 m.assigned = True
         if not ActionItemsPerson:
             return None
 
         # Unassigned items
-        Unassigned = [ ]
+        Unassigned = []
         for m in M.minutes:
-            if m.itemtype != "ACTION": continue
-            if getattr(m, 'assigned', False): continue
-            Unassigned.append(wrapList("* %s"%text(m.line), 2))
+            if m.itemtype != "ACTION":
+                continue
+            if getattr(m, 'assigned', False):
+                continue
+            Unassigned.append(wrapList("* %s" % text(m.line), 2))
         if Unassigned:
             Unassigned.insert(0, "* **UNASSIGNED**")
             ActionItemsPerson.extend(Unassigned)
@@ -1040,16 +1094,16 @@ class Text(_BaseWriter):
     def peoplePresent(self):
         M = self.M
         # People Attending
-        PeoplePresent = [ ]
+        PeoplePresent = []
         PeoplePresent.append(self.heading('People present (lines said)'))
         # sort by number of lines spoken
         for nick, count in self.iterNickCounts():
-            PeoplePresent.append('* %s (%d)'%(text(nick), count))
+            PeoplePresent.append('* %s (%d)' % (text(nick), count))
         PeoplePresent = "\n".join(PeoplePresent)
         return PeoplePresent
 
     def heading(self, name):
-        return '%s\n%s\n'%(name, '-'*len(name))
+        return '%s\n%s\n' % (name, '-'*len(name))
 
     def format(self, extension=None):
         """Return a plain text minutes summary."""
@@ -1057,10 +1111,10 @@ class Text(_BaseWriter):
 
         # Actual formatting and replacement
         repl = self.replacements()
-        repl.update({'titleBlock':('='*len(repl['pageTitle'])),
+        repl.update({'titleBlock': ('='*len(repl['pageTitle'])),
                      })
 
-        body = [ ]
+        body = []
         body.append(textwrap.dedent("""\
             %(titleBlock)s
             %(pageTitle)s
@@ -1069,16 +1123,16 @@ class Text(_BaseWriter):
 
             sWRAPsMeeting started by %(owner)s at %(starttime)s
             %(timeZone)s.  The full logs are available at
-            %(fullLogsFullURL)seWRAPe"""%repl))
+            %(fullLogsFullURL)seWRAPe""" % repl))
         body.append(self.meetingItems())
         body.append(textwrap.dedent("""\
-            Meeting ended at %(endtime)s %(timeZone)s."""%repl))
+            Meeting ended at %(endtime)s %(timeZone)s.""" % repl))
         body.append(self.actionItems())
         body.append(self.actionItemsPerson())
         body.append(self.peoplePresent())
         body.append(textwrap.dedent("""\
-            Generated by MeetBot %(MeetBotVersion)s (%(MeetBotInfoURL)s)"""%repl))
-        body = [ b for b in body if b is not None ]
+            Generated by MeetBot %(MeetBotVersion)s (%(MeetBotInfoURL)s)""" % repl))
+        body = [b for b in body if b is not None]
         body = "\n\n\n\n".join(body)
         body = replaceWRAP(body)
 
@@ -1087,10 +1141,11 @@ class Text(_BaseWriter):
 
 class MediaWiki(_BaseWriter):
     """Outputs MediaWiki formats."""
+
     def meetingItems(self):
         M = self.M
         # Agenda items
-        MeetingItems = [ ]
+        MeetingItems = []
         MeetingItems.append(self.heading('Meeting summary'))
         haveTopic = False
         for m in M.minutes:
@@ -1100,7 +1155,8 @@ class MediaWiki(_BaseWriter):
                     MeetingItems.append("")
                 haveTopic = True
             else:
-                if haveTopic: item = "*"+item
+                if haveTopic:
+                    item = "*"+item
             MeetingItems.append(item)
         MeetingItems = "\n".join(MeetingItems)
         return MeetingItems
@@ -1108,12 +1164,13 @@ class MediaWiki(_BaseWriter):
     def actionItems(self):
         M = self.M
         # Action Items
-        ActionItems = [ ]
+        ActionItems = []
         for m in M.minutes:
             # The hack below is needed because of pickling problems
-            if m.itemtype != "ACTION": continue
-            #already escaped
-            ActionItems.append("* %s"%mw(m.line))
+            if m.itemtype != "ACTION":
+                continue
+            # already escaped
+            ActionItems.append("* %s" % mw(m.line))
         if not ActionItems:
             return None
         ActionItems.insert(0, self.heading('Action items'))
@@ -1123,30 +1180,33 @@ class MediaWiki(_BaseWriter):
     def actionItemsPerson(self):
         M = self.M
         # Action Items, by person (This could be made lots more efficient)
-        ActionItemsPerson = [ ]
+        ActionItemsPerson = []
         numberAssigned = 0
         for nick in sorted(list(M.attendees.keys()), key=lambda x: x.lower()):
             headerPrinted = False
             for m in M.minutes:
                 # The hack below is needed because of pickling problems
-                if m.itemtype != "ACTION": continue
+                if m.itemtype != "ACTION":
+                    continue
                 if not re.match(r'.*\b%s\b.*' % re.escape(nick), m.line, re.I):
                     continue
                 if not headerPrinted:
-                    ActionItemsPerson.append("* %s"%mw(nick))
+                    ActionItemsPerson.append("* %s" % mw(nick))
                     headerPrinted = True
-                ActionItemsPerson.append("** %s"%mw(m.line))
+                ActionItemsPerson.append("** %s" % mw(m.line))
                 numberAssigned += 1
                 m.assigned = True
         if not ActionItemsPerson:
             return None
 
         # Unassigned items
-        Unassigned = [ ]
+        Unassigned = []
         for m in M.minutes:
-            if m.itemtype != "ACTION": continue
-            if getattr(m, 'assigned', False): continue
-            Unassigned.append("** %s"%mw(m.line))
+            if m.itemtype != "ACTION":
+                continue
+            if getattr(m, 'assigned', False):
+                continue
+            Unassigned.append("** %s" % mw(m.line))
         if Unassigned:
             Unassigned.insert(0, "* **UNASSIGNED**")
             ActionItemsPerson.extend(Unassigned)
@@ -1158,17 +1218,16 @@ class MediaWiki(_BaseWriter):
     def peoplePresent(self):
         M = self.M
         # People Attending
-        PeoplePresent = [ ]
+        PeoplePresent = []
         PeoplePresent.append(self.heading('People present (lines said)'))
         # sort by number of lines spoken
         for nick, count in self.iterNickCounts():
-            PeoplePresent.append('* %s (%d)'%(mw(nick), count))
+            PeoplePresent.append('* %s (%d)' % (mw(nick), count))
         PeoplePresent = "\n".join(PeoplePresent)
         return PeoplePresent
 
     def heading(self, name, level=1):
-        return '%s %s %s\n'%('='*(level+1), name, '='*(level+1))
-
+        return '%s %s %s\n' % ('='*(level+1), name, '='*(level+1))
 
     body_start = textwrap.dedent("""\
             %(pageTitleHeading)s
@@ -1176,27 +1235,28 @@ class MediaWiki(_BaseWriter):
             sWRAPsMeeting started by %(owner)s at %(starttime)s
             %(timeZone)s.  The full logs are available at
             %(fullLogsFullURL)seWRAPe""")
+
     def format(self, extension=None):
         """Return a MediaWiki formatted minutes summary."""
         M = self.M
 
         # Actual formatting and replacement
         repl = self.replacements()
-        repl.update({'titleBlock':('='*len(repl['pageTitle'])),
-                     'pageTitleHeading':self.heading(repl['pageTitle'],level=0)
+        repl.update({'titleBlock': ('='*len(repl['pageTitle'])),
+                     'pageTitleHeading': self.heading(repl['pageTitle'], level=0)
                      })
 
-        body = [ ]
-        body.append(self.body_start%repl)
+        body = []
+        body.append(self.body_start % repl)
         body.append(self.meetingItems())
         body.append(textwrap.dedent("""\
-            Meeting ended at %(endtime)s %(timeZone)s."""%repl))
+            Meeting ended at %(endtime)s %(timeZone)s.""" % repl))
         body.append(self.actionItems())
         body.append(self.actionItemsPerson())
         body.append(self.peoplePresent())
         body.append(textwrap.dedent("""\
-            Generated by MeetBot %(MeetBotVersion)s (%(MeetBotInfoURL)s)"""%repl))
-        body = [ b for b in body if b is not None ]
+            Generated by MeetBot %(MeetBotVersion)s (%(MeetBotInfoURL)s)""" % repl))
+        body = [b for b in body if b is not None]
         body = "\n\n\n\n".join(body)
         body = replaceWRAP(body)
 
@@ -1205,20 +1265,22 @@ class MediaWiki(_BaseWriter):
 
 class PmWiki(MediaWiki, object):
     def heading(self, name, level=1):
-        return '%s %s\n'%('!'*(level+1), name)
+        return '%s %s\n' % ('!'*(level+1), name)
+
     def replacements(self):
-        #repl = super(PmWiki, self).replacements(self) # fails, type checking
+        # repl = super(PmWiki, self).replacements(self) # fails, type checking
         repl = MediaWiki.replacements.__func__(self)
-        repl['pageTitleHeading'] = self.heading(repl['pageTitle'],level=0)
+        repl['pageTitleHeading'] = self.heading(repl['pageTitle'], level=0)
         return repl
 
 
 class Moin(_BaseWriter):
     """Outputs MoinMoin formats."""
+
     def meetingItems(self):
         M = self.M
         # Agenda items
-        MeetingItems = [ ]
+        MeetingItems = []
         MeetingItems.append(self.heading('Meeting summary'))
         haveTopic = False
         haveSubtopic = False
@@ -1236,15 +1298,17 @@ class Moin(_BaseWriter):
             else:
                 if not haveTopic:
                     haveTopic = True
-                if haveSubtopic: item = "  * "+item
-                else:            item = " * "+item
+                if haveSubtopic:
+                    item = "  * "+item
+                else:
+                    item = " * "+item
             MeetingItems.append(item)
         MeetingItems = "\n".join(MeetingItems)
         return MeetingItems
 
     def fullLog(self):
         M = self.M
-        Lines = [ ]
+        Lines = []
         Lines.append(self.heading('Full log'))
         for l in M.lines:
             Lines.append(' '+l)
@@ -1254,7 +1318,7 @@ class Moin(_BaseWriter):
     def votes(self):
         M = self.M
         # Votes
-        Votes = [ ]
+        Votes = []
         # reversed to show the oldest first
         for v, (vsum, vline) in list(M.votes.items()):
             voteLink = "%(fullLogsFullURL)s" % self.replacements()
@@ -1273,12 +1337,13 @@ class Moin(_BaseWriter):
     def actionItems(self):
         M = self.M
         # Action Items
-        ActionItems = [ ]
+        ActionItems = []
         for m in M.minutes:
             # The hack below is needed because of pickling problems
-            if m.itemtype != "ACTION": continue
-            #already escaped
-            ActionItems.append(" * %s"%moin(m.line))
+            if m.itemtype != "ACTION":
+                continue
+            # already escaped
+            ActionItems.append(" * %s" % moin(m.line))
         if not ActionItems:
             return None
         ActionItems.insert(0, self.heading('Action items'))
@@ -1288,28 +1353,31 @@ class Moin(_BaseWriter):
     def actionItemsPerson(self):
         M = self.M
         # Action Items, by person (This could be made lots more efficient)
-        ActionItemsPerson = [ ]
+        ActionItemsPerson = []
         for nick in sorted(list(M.attendees.keys()), key=lambda x: x.lower()):
             headerPrinted = False
             for m in M.minutes:
                 # The hack below is needed because of pickling problems
-                if m.itemtype != "ACTION": continue
+                if m.itemtype != "ACTION":
+                    continue
                 if not re.match(r'.*\b%s\b.*' % re.escape(nick), m.line, re.I):
                     continue
                 if not headerPrinted:
-                    ActionItemsPerson.append(" * %s"%moin(nick))
+                    ActionItemsPerson.append(" * %s" % moin(nick))
                     headerPrinted = True
-                ActionItemsPerson.append("  * %s"%moin(m.line))
+                ActionItemsPerson.append("  * %s" % moin(m.line))
                 m.assigned = True
         if not ActionItemsPerson:
             return None
 
         # Unassigned items
-        Unassigned = [ ]
+        Unassigned = []
         for m in M.minutes:
-            if m.itemtype != "ACTION": continue
-            if getattr(m, 'assigned', False): continue
-            Unassigned.append("  * %s"%moin(m.line))
+            if m.itemtype != "ACTION":
+                continue
+            if getattr(m, 'assigned', False):
+                continue
+            Unassigned.append("  * %s" % moin(m.line))
         if Unassigned:
             Unassigned.insert(0, " * **UNASSIGNED**")
             ActionItemsPerson.extend(Unassigned)
@@ -1321,12 +1389,13 @@ class Moin(_BaseWriter):
     def doneItems(self):
         M = self.M
         # Done Items
-        DoneItems = [ ]
+        DoneItems = []
         for m in M.minutes:
             # The hack below is needed because of pickling problems
-            if m.itemtype != "DONE": continue
-            #already escaped
-            DoneItems.append(" * %s"%moin(m.line))
+            if m.itemtype != "DONE":
+                continue
+            # already escaped
+            DoneItems.append(" * %s" % moin(m.line))
         if not DoneItems:
             return None
         DoneItems.insert(0, self.heading('Done items'))
@@ -1336,35 +1405,35 @@ class Moin(_BaseWriter):
     def peoplePresent(self):
         M = self.M
         # People Attending
-        PeoplePresent = [ ]
+        PeoplePresent = []
         PeoplePresent.append(self.heading('People present (lines said)'))
         # sort by number of lines spoken
         for nick, count in self.iterNickCounts():
-            PeoplePresent.append(' * %s (%d)'%(moin(nick), count))
+            PeoplePresent.append(' * %s (%d)' % (moin(nick), count))
         PeoplePresent = "\n".join(PeoplePresent)
         return PeoplePresent
 
     def heading(self, name, level=1):
-        return '%s %s %s\n'%('='*(level+1), name, '='*(level+1))
-
+        return '%s %s %s\n' % ('='*(level+1), name, '='*(level+1))
 
     body_start = textwrap.dedent("""\
             == Meeting information ==
 
              * %(pageTitleHeading)s, started by %(owner)s, %(startdate)s at %(starttimeshort)s &mdash; %(endtimeshort)s %(timeZone)s.
              * Full logs at %(fullLogsFullURL)s""")
+
     def format(self, extension=None):
         """Return a MoinMoin formatted minutes summary."""
         M = self.M
 
         # Actual formatting and replacement
         repl = self.replacements()
-        repl.update({'titleBlock':('='*len(repl['pageTitle'])),
-                     'pageTitleHeading':(repl['pageTitle'])
+        repl.update({'titleBlock': ('='*len(repl['pageTitle'])),
+                     'pageTitleHeading': (repl['pageTitle'])
                      })
 
-        body = [ ]
-        body.append(self.body_start%repl)
+        body = []
+        body.append(self.body_start % repl)
         body.append(self.meetingItems())
         body.append(self.votes())
         body.append(self.actionItemsPerson())
@@ -1373,8 +1442,8 @@ class Moin(_BaseWriter):
         if M.config.moinFullLogs:
             body.append(self.fullLog())
         body.append(textwrap.dedent("""\
-            Generated by MeetBot %(MeetBotVersion)s (%(MeetBotInfoURL)s)"""%repl))
-        body = [ b for b in body if b is not None ]
+            Generated by MeetBot %(MeetBotVersion)s (%(MeetBotInfoURL)s)""" % repl))
+        body = [b for b in body if b is not None]
         body = "\n\n\n\n".join(body)
         body = replaceWRAP(body)
 

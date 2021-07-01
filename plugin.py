@@ -31,7 +31,8 @@
 from supybot import utils, plugins, ircutils, callbacks, ircmsgs, log as supylog
 from supybot.commands import *
 
-import re, time
+import re
+import time
 from . import meeting
 
 # By doing this, we can not lose all of our meetings across plugin
@@ -71,10 +72,13 @@ class MeetBot(callbacks.Plugin):
         # These callbacks are used to send data to the channel
         def _setTopic(x):
             irc.queueMsg(ircmsgs.topic(channel, x))
+
         def _sendReply(x):
             irc.queueMsg(ircmsgs.privmsg(channel, x))
+
         def _sendPrivateReply(nick, x):
             irc.queueMsg(ircmsgs.privmsg(nick, x))
+
         def _channelNicks():
             return irc.state.channels[channel].users
 
@@ -83,7 +87,9 @@ class MeetBot(callbacks.Plugin):
             return (nick == M.owner or nick in M.chairs or
                     nick in irc.state.channels[channel].ops)
 
-        logfile_RE = re.compile(r'^.*/([^.]+)\.([0-9]{4}(-[0-9]{2}){3}(\.[0-9]{2}){1,2})\..*$')
+        logfile_RE = re.compile(
+            r'^.*/([^.]+)\.([0-9]{4}(-[0-9]{2}){3}(\.[0-9]{2}){1,2})\..*$')
+
         def parse_time(time_):
             try:
                 return time.strptime(time_, "%Y-%m-%d-%H.%M")
@@ -98,7 +104,7 @@ class MeetBot(callbacks.Plugin):
         # interactive interperter inside of the live bot.  use
         # code.interact instead of my souped-up version if you aren't
         # on my computer:
-        #if payload == 'interact':
+        # if payload == 'interact':
         #    from rkddp.interact import interact ; interact()
 
         # Get our Meeting object, if one exists.  Have to keep track
@@ -114,7 +120,8 @@ class MeetBot(callbacks.Plugin):
                           private=True)
                 return
             M = meeting.Meeting(channel=channel, network=network, owner=nick,
-                                botIsOp=irc.state.channels[channel].isOp(irc.nick),
+                                botIsOp=irc.state.channels[channel].isOp(
+                                    irc.nick),
                                 oldtopic=irc.state.channels[channel].topic,
                                 writeRawLog=True, safeMode=True,
                                 getRegistryValue=self.registryValue,
@@ -133,7 +140,8 @@ class MeetBot(callbacks.Plugin):
                           private=True)
                 return
             M = meeting.Meeting(channel=channel, network=network, owner=None,
-                                botIsOp=irc.state.channels[channel].isOp(irc.nick),
+                                botIsOp=irc.state.channels[channel].isOp(
+                                    irc.nick),
                                 oldtopic=irc.state.channels[channel].topic,
                                 writeRawLog=True, safeMode=True,
                                 getRegistryValue=self.registryValue)
@@ -150,9 +158,10 @@ class MeetBot(callbacks.Plugin):
                     M.starttime = parse_time(m.group(2))
                 M.replay(url)
                 if not M._meetingIsOver:
-                    M._setTopic=_setTopic; M._sendReply=_sendReply
-                    M._sendPrivateReply=_sendPrivateReply
-                    M._channelNicks=_channelNicks
+                    M._setTopic = _setTopic
+                    M._sendReply = _sendReply
+                    M._sendPrivateReply = _sendPrivateReply
+                    M._channelNicks = _channelNicks
                 else:
                     del meeting_cache[Mkey]
             return
@@ -171,7 +180,8 @@ class MeetBot(callbacks.Plugin):
             irc.reply("Meeting ended without saving its logs")
 
         # If there is no meeting going on, then we quit
-        if not M or M._meetingIsOver: return
+        if not M or M._meetingIsOver:
+            return
         # Add line to our meeting buffer
         isop = (nick in irc.state.channels[channel].ops)
         M.addline(nick, payload, isop)
@@ -200,7 +210,8 @@ class MeetBot(callbacks.Plugin):
                         time_ = time.localtime()
                         private = True
                         voteMeeting.doCastVote(nick, payload, time_, private)
-                        irc.reply("Received for vote: " + voteMeeting.activeVote)
+                        irc.reply("Received for vote: " +
+                                  voteMeeting.activeVote)
                     else:
                         irc.reply("No active meetings in this channel")
     vote = wrap(vote, ["something", "channel"])
@@ -284,7 +295,7 @@ class MeetBot(callbacks.Plugin):
         del meeting_cache[Mkey]
         irc.reply("Deleted meeting on (%s, %s)" % (channel, network))
     deletemeeting = wrap(deletemeeting, ['admin', "channel", "something",
-                               optional("boolean", True)])
+                                         optional("boolean", True)])
 
     def recent(self, irc, msg, args):
         """
@@ -294,8 +305,10 @@ class MeetBot(callbacks.Plugin):
         reply = []
         for channel, network, ctime in recent_meetings:
             Mkey = (channel, network)
-            if Mkey in meeting_cache:   state = ", running"
-            else:                       state = ""
+            if Mkey in meeting_cache:
+                state = ", running"
+            else:
+                state = ""
             reply.append("(%s, %s, %s%s)" % (channel, network, ctime, state))
         if reply:
             irc.reply(" ".join(reply))
@@ -322,7 +335,7 @@ class MeetBot(callbacks.Plugin):
             return
         if not message:
             irc.reply(("You must supply a description with the `pingall` command.  "
-                "We don't want to go wasting people's times looking for why they are pinged."))
+                       "We don't want to go wasting people's times looking for why they are pinged."))
             return
 
         # Send announcement message
@@ -379,6 +392,7 @@ class MeetBot(callbacks.Plugin):
 #        instancemethod = type(self.__getattr__)
 #        wrapped_function = wrap(wrapped_function, [optional('text', '')])
 #        return instancemethod(wrapped_function, self, MeetBot)
+
 
 Class = MeetBot
 
