@@ -418,7 +418,7 @@ class MeetingCommands(object):
             return
         self._restrictlogs = True
         self.reply("Restricting permissions on minutes: -%s on next #save" %
-                   oct(RestrictPerm))
+                   oct(self.config.RestrictPerm))
 
     def do_lurk(self, nick, **kwargs):
         """Don't interact in the channel."""

@@ -71,8 +71,9 @@ class MeetBotTest(unittest.TestCase):
                                extraConfig=extraConfig)
 
     def test_script_1(self):
-        process_meeting(contents=file('test-script-1.log.txt').read(),
-                        extraConfig={'writer_map':self.full_writer_map})
+        with open('test-script-1.log.txt') as f:
+            process_meeting(contents=f.read(),
+                            extraConfig={'writer_map':self.full_writer_map})
     #def test_script_3(self):
     #   process_meeting(contents=file('test-script-3.log.txt').read(),
     #                   extraConfig={'writer_map':self.full_writer_map})
