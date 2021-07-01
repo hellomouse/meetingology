@@ -189,27 +189,21 @@ class MeetBot(callbacks.Plugin):
         if M._meetingIsOver:
             del meeting_cache[Mkey]
 
-    def vote(self, irc, msg, args):
+    def vote(self, irc, msg, args, vote, channel):
         """<+1|-1|+0> <channel>
 
         Vote by private message."""
         nick = msg.nick
-        channel = msg.channel
-        network = irc.network
-        payload = msg.args[1].strip()
-
-        """ substring to remove 'vote ' from payload """
-        payload = payload[5:]
 
         """ private voting system """
-        if channel[0] != '#' and re.match(r'([+-]1|[+-]?0)\b', payload):
+        if not msg.channel and re.match(r'([+-]1|[+-]?0)\b', vote):
             for key in meeting_cache.keys():
-                if payload.endswith(key[0]):
+                if channel == key[0]:
                     voteMeeting = meeting_cache.get(key, None)
                     if voteMeeting:
                         time_ = time.localtime()
                         private = True
-                        voteMeeting.doCastVote(nick, payload, time_, private)
+                        voteMeeting.doCastVote(nick, vote, time_, private)
                         irc.reply("Received for vote: " +
                                   voteMeeting.activeVote)
                     else:
