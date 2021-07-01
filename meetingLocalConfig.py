@@ -2,10 +2,10 @@ import re
 from . import writers
 
 class Config(object):
-    logFileDir = '/var/www/meetingology/logs/'
+    logFileDir = '/var/www/meetbot/'
     filenamePattern = '%(channel)s/%%Y/%(channel)s.%%F-%%H.%%M'
 
-    logUrlPrefix = 'https://ubottu.com/meetingology/logs/'
+    logUrlPrefix = 'https://meetbot.hellomouse.net/'
     MeetBotInfoURL = 'https://wiki.ubuntu.com/meetingology'
     moinFullLogs = True
     writer_map = {
