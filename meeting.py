@@ -88,7 +88,7 @@ class Config(object):
     endMeetingMessage = ("Meeting ended at %(endtime)s %(timeZone)s.  "
                          "Minutes at %(urlBasename)s.moin.txt")
     endMeetingNotification = ("%(meeting)s in %(channel)s has just ended")
-    endMeetingNotificationList = ["jose"]
+    endMeetingNotificationList = []
 
     # Should the bot talk in the channel
     beNoisy = True
