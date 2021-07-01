@@ -28,11 +28,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 ###
 
+from supybot import utils, plugins, ircutils, callbacks, ircmsgs, log as supylog
 from supybot.commands import *
-import supybot.utils as utils
-import supybot.ircmsgs as ircmsgs
-import supybot.callbacks as callbacks
-import supybot.log as supylog
 
 import re, time
 from . import meeting
@@ -40,10 +37,14 @@ from . import meeting
 # By doing this, we can not lose all of our meetings across plugin
 # reloads.  But, of course, you can't change the source too
 # drastically if you do that!
-try:               meeting_cache
-except NameError:  meeting_cache = {}
-try:               recent_meetings
-except NameError:  recent_meetings = []
+try:
+    meeting_cache
+except NameError:
+    meeting_cache = {}
+try:
+    recent_meetings
+except NameError:
+    recent_meetings = []
 
 
 class MeetBot(callbacks.Plugin):
@@ -84,10 +85,14 @@ class MeetBot(callbacks.Plugin):
 
         logfile_RE = re.compile(r'^.*/([^.]+)\.([0-9]{4}(-[0-9]{2}){3}(\.[0-9]{2}){1,2})\..*$')
         def parse_time(time_):
-            try: return time.strptime(time_, "%Y-%m-%d-%H.%M")
-            except ValueError: pass
-            try: return time.strptime(time_, "%Y-%m-%d-%H.%M.%S")
-            except ValueError: pass
+            try:
+                return time.strptime(time_, "%Y-%m-%d-%H.%M")
+            except ValueError:
+                pass
+            try:
+                return time.strptime(time_, "%Y-%m-%d-%H.%M.%S")
+            except ValueError:
+                pass
 
         # The following is for debugging.  It's excellent to get an
         # interactive interperter inside of the live bot.  use

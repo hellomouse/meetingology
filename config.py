@@ -28,9 +28,16 @@
 # POSSIBILITY OF SUCH DAMAGE.
 ###
 
+from supybot import conf, registry
+try:
+    from supybot.i18n import PluginInternationalization
+    _ = PluginInternationalization('Template')
+except:
+    # Placeholder that allows to run the plugin on a bot
+    # without the i18n module
+    _ = lambda x: x
+
 import sys, re, types
-import supybot.conf as conf
-import supybot.registry as registry
 
 from importlib import reload
 from . import meeting

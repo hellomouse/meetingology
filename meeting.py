@@ -30,8 +30,7 @@
 
 import os, sys, re
 import time, stat
-import supybot.utils as utils
-import supybot.log as supylog
+from supybot import utils, log as supylog
 
 from importlib import reload
 from . import config
@@ -49,7 +48,7 @@ class Config(object):
     # Where to store the logfiles on disk
     logFileDir = '/var/www/meetbot/'
     # The links to the logfiles are given this prefix
-    logUrlPrefix = 'http://meetbot.debian.net/'
+    logUrlPrefix = 'https://meetbot.hellomouse.net/'
     # Give the pattern to save files into here.  Use %(channel)s for
     # channel.  This will be sent through strftime for substituting the
     # times; however, for strftime codes you must use doubled percent
