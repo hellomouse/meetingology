@@ -102,13 +102,9 @@ class Config(object):
     # Functions to do the i/o conversion.
 
     def enc(self, text):
-        if sys.version_info < (3, 0):
-            return text.encode(self.output_codec, 'replace')
         return text
 
     def dec(self, text):
-        if sys.version_info < (3, 0):
-            return text.decode(self.input_codec, 'replace')
         return text
     # Write out select logfiles
     update_realtime = True
