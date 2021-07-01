@@ -228,8 +228,7 @@ class Config(object):
             # If it doesn't, then it's assumed that the write took
             # care of writing (or publishing or emailing or wikifying)
             # it itself.
-            if isinstance(text, str) or \
-                    (sys.version_info < (3, 0) and isinstance(text, unicode)):
+            if isinstance(text, str):
                 # Have a way to override saving, so no disk files are written.
                 if getattr(self, "dontSave", False):
                     continue

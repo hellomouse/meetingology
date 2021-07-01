@@ -110,8 +110,7 @@ class SupybotConfigProxy(object):
         if attrname in settable_attributes:
             value = self.__C.M._registryValue(attrname,
                                               channel=self.__C.M.channel)
-            if not (isinstance(value, str) or
-                    (sys.version_info < (3,0) and isinstance(value, unicode))):
+            if not isinstance(value, str):
                 return value
             # '.' is used to mean "this is not set, use the default
             # value from the python config class.
@@ -150,8 +149,7 @@ def setup_config(OriginalConfig):
             continue
         attr = getattr(OriginalConfig, attrname)
         # Only configure attributes that can be handled through Supybot.
-        if isinstance(attr, str) or \
-                (sys.version_info < (3,0) and isinstance(attr, unicode)):
+        if isinstance(attr, str):
             attr = attr.replace('\n', '\\n')
             attrtype = registry.String
         elif isinstance(attr, bool):
