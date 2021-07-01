@@ -84,7 +84,7 @@ class _BaseItem(object):
 
     def template(self, M, escapewith):
         template = {}
-        for k, v in list(self.get_replacements(M, escapewith).items()):
+        for k, v in self.get_replacements(M, escapewith).items():
             if k not in ('itemtype', 'line', 'topic',
                          'url', 'url_quoteescaped',
                          'nick', 'time', 'link', 'anchor'):

@@ -203,7 +203,7 @@ class MeetBot(callbacks.Plugin):
 
         """ private voting system """
         if channel[0] != '#' and re.match(r'([+-]1|[+-]?0)\b', payload):
-            for key in list(meeting_cache.keys()):
+            for key in meeting_cache.keys():
                 if payload.endswith(key[0]):
                     voteMeeting = meeting_cache.get(key, None)
                     if voteMeeting:
@@ -256,11 +256,11 @@ class MeetBot(callbacks.Plugin):
         """
 
         Save all currently active meetings."""
-        for M in list(meeting_cache.items()):
+        for M in meeting_cache.items():
             if not M._meetingIsOver:
                 M.endtime = time.localtime()
             M.config.save()
-        irc.reply("Saved %d meetings" % len(list(meeting_cache.items())))
+        irc.reply("Saved %d meetings" % len(meeting_cache.items()))
     savemeetings = wrap(savemeetings, ['admin'])
 
     def addchair(self, irc, msg, args, channel, network, nick):

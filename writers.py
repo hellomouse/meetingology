@@ -130,12 +130,12 @@ class _BaseWriter(object):
                 }
 
     def iterNickCounts(self):
-        nicks = [(n, c) for (n, c) in list(self.M.attendees.items())]
+        nicks = [(n, c) for (n, c) in self.M.attendees.items()]
         nicks.sort(key=lambda x: x[1], reverse=True)
         return nicks
 
     def iterActionItemsNick(self):
-        for nick in sorted(list(self.M.attendees.keys()), key=lambda x: x.lower()):
+        for nick in sorted(self.M.attendees.keys(), key=lambda x: x.lower()):
             def nickitems():
                 for m in self.M.minutes:
                     # The hack below is needed because of pickling problems
@@ -311,12 +311,9 @@ class Template(_BaseWriter):
             Template = genshi.template.MarkupTemplate    # HTML-like
 
         # Do the actual templating work
-        try:
-            f = open(template, 'r')
+        with open(template, 'r') as f:
             tmpl = Template(f.read())
             stream = tmpl.generate(**repl)
-        finally:
-            f.close()
 
         return stream.render()
 
@@ -716,7 +713,7 @@ class HTML2(_BaseWriter, _CSSmanager):
         # Votes
         Votes = []
         # reversed to show the oldest first
-        for v, (vsum, vline) in list(M.votes.items()):
+        for v, (vsum, vline) in M.votes.items():
             voteLink = "%(fullLogs)s" % self.replacements()
             Votes.append(wrapList("<li><a href='%s#%d'>%s</a>" %
                          (voteLink, vline, html(v)), 2))
@@ -954,7 +951,7 @@ class ReST(_BaseWriter):
 
         # Action Items, by person (This could be made lots more efficient)
         ActionItemsPerson = []
-        for nick in sorted(list(M.attendees.keys()), key=lambda x: x.lower()):
+        for nick in sorted(M.attendees.keys(), key=lambda x: x.lower()):
             headerPrinted = False
             for m in M.minutes:
                 # The hack below is needed because of pickling problems
@@ -1059,7 +1056,7 @@ class Text(_BaseWriter):
         M = self.M
         # Action Items, by person (This could be made lots more efficient)
         ActionItemsPerson = []
-        for nick in sorted(list(M.attendees.keys()), key=lambda x: x.lower()):
+        for nick in sorted(M.attendees.keys(), key=lambda x: x.lower()):
             headerPrinted = False
             for m in M.minutes:
                 # The hack below is needed because of pickling problems
@@ -1182,7 +1179,7 @@ class MediaWiki(_BaseWriter):
         # Action Items, by person (This could be made lots more efficient)
         ActionItemsPerson = []
         numberAssigned = 0
-        for nick in sorted(list(M.attendees.keys()), key=lambda x: x.lower()):
+        for nick in sorted(M.attendees.keys(), key=lambda x: x.lower()):
             headerPrinted = False
             for m in M.minutes:
                 # The hack below is needed because of pickling problems
@@ -1320,7 +1317,7 @@ class Moin(_BaseWriter):
         # Votes
         Votes = []
         # reversed to show the oldest first
-        for v, (vsum, vline) in list(M.votes.items()):
+        for v, (vsum, vline) in M.votes.items():
             voteLink = "%(fullLogsFullURL)s" % self.replacements()
             Votes.append(" * [[%s#%d|%s]]" % (voteLink, vline, v))
             # differentiate denied votes somehow, strikethrough perhaps?
@@ -1354,7 +1351,7 @@ class Moin(_BaseWriter):
         M = self.M
         # Action Items, by person (This could be made lots more efficient)
         ActionItemsPerson = []
-        for nick in sorted(list(M.attendees.keys()), key=lambda x: x.lower()):
+        for nick in sorted(M.attendees.keys(), key=lambda x: x.lower()):
             headerPrinted = False
             for m in M.minutes:
                 # The hack below is needed because of pickling problems

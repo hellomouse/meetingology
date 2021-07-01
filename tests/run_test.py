@@ -110,7 +110,7 @@ class MeetBotTest(unittest.TestCase):
         M = process_meeting(contents=self.all_commands_test_contents,
                             extraConfig={'writer_map':self.full_writer_map})
         results = M.save()
-        for name, output in list(results.items()):
+        for name, output in results.items():
             self.assertTrue('h6k4orkac' in output, "Topic failed for %s"%name)
             self.assertTrue('blaoulrao' in output, "Info failed for %s"%name)
             self.assertTrue('alrkkcao4' in output, "Idea failed for %s"%name)

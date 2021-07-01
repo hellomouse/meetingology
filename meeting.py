@@ -134,14 +134,14 @@ class Config(object):
         self.writeRawLog = writeRawLog
         self.safeMode = safeMode
         # Update config values with anything we may have
-        for k, v in list(extraConfig.items()):
+        for k, v in extraConfig.items():
             setattr(self, k, v)
 
     def setWriters(self):
         self.writers = {}
         if self.writeRawLog:
             self.writers['.log.txt'] = writers.TextLog(self.M)
-        for extension, writer in list(self.writer_map.items()):
+        for extension, writer in self.writer_map.items():
             self.writers[extension] = writer(self.M)
 
     def filename(self, url=False):
@@ -486,7 +486,7 @@ class MeetingCommands(object):
         vfor = 0
         vagainst = 0
         vabstain = 0
-        for v in list(self.currentVote.values()):
+        for v in self.currentVote.values():
             if re.match(r'\+1\b', v):
                 vfor += 1
             elif re.match(r'-1\b', v):

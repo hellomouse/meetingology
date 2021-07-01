@@ -82,7 +82,7 @@ class WriterMap(registry.SpaceSeparatedListOfStrings):
         self.value = v
     def __str__(self):
         writer_list = [ ]
-        for ext, writer in list(self.value.items()):
+        for ext, writer in self.value.items():
             writer_list.append("%s:%s" % (writer.__name__, ext))
         return " ".join(writer_list)
 
