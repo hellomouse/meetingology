@@ -205,9 +205,9 @@ class Config(object):
             # then we only want to update those writers which say they
             # should be updated step-by-step.
             if (realtime_update and (not self.update_realtime or
-                                         not getattr(writer, 'update_realtime', False) or
-                                         getattr(self, '_filename', None))
-                    ):
+                                     not getattr(writer, 'update_realtime', False) or
+                                     getattr(self, '_filename', None))
+                ):
                 continue
             # Parse embedded arguments
             if '|' in extension:
@@ -228,18 +228,17 @@ class Config(object):
                 # Have a way to override saving, so no disk files are written.
                 if getattr(self, "dontSave", False):
                     continue
-                self.writeToFile(self.enc(text), rawname+extension)
+                self.writeToFile(self.enc(text), f"{rawname}{extension}")
         return results
 
     def writeToFile(self, string, filename):
         """Write a given string to a file."""
         # The reason we have this method just for this is to proxy
         # through the _restrictPermissions logic.
-        f = open(filename, 'w')
-        if self.M._restrictlogs:
-            self.restrictPermissions(f)
-        f.write(string)
-        f.close()
+        with open(filename, 'w') as f:
+            if self.M._restrictlogs:
+                self.restrictPermissions(f)
+            f.write(string)
 
     def restrictPermissions(self, f):
         """Remove the permissions given in the variable RestrictPerm."""
@@ -354,7 +353,7 @@ class MeetingCommands(object):
         m = items.Agreed(nick=nick, **kwargs)
         self.additem(m)
         if self.config.beNoisy:
-            self.reply("AGREED: " + m.line)
+            self.reply(f"AGREED: {m.line}")
     do_agree = do_agreed
 
     def do_accepted(self, nick, **kwargs):
@@ -387,8 +386,9 @@ class MeetingCommands(object):
                 self.addnick(chair, lines=0)
                 self.chairs[chair] = True
                 self.do_private_commands(chair)
-        self.reply("Current chairs: " +
-                   ', '.join(sorted(set(list(self.chairs.keys()) + [self.owner]))))
+        current_chairs = ', '.join(
+            sorted(set(list(self.chairs.keys()) + [self.owner])))
+        self.reply(f"Current chairs: {current_chairs}")
 
     def do_unchair(self, nick, line, **kwargs):
         """Remove a chair from the meeting (founder cannot be removed)."""
@@ -399,8 +399,9 @@ class MeetingCommands(object):
                 continue
             if chair in self.chairs:
                 del self.chairs[chair]
-        self.reply("Current chairs: " +
-                   ', '.join(sorted(set(list(self.chairs.keys()) + [self.owner]))))
+        current_chairs = ', '.join(
+            sorted(set(list(self.chairs.keys()) + [self.owner])))
+        self.reply(f"Current chairs: {current_chairs}")
 
     def do_undo(self, nick, **kwargs):
         """Remove the last item from the minutes."""
@@ -408,8 +409,8 @@ class MeetingCommands(object):
             return
         if not self.minutes:
             return
-        self.reply("Removing item from minutes: " +
-                   str(self.minutes[-1].itemtype))
+        self.reply("Removing item from minutes: %s" %
+                   self.minutes[-1].itemtype)
         del self.minutes[-1]
 
     def do_restrictlogs(self, nick, **kwargs):
@@ -440,14 +441,14 @@ class MeetingCommands(object):
             return
         meetingname = "_".join(line.lower().split())
         self._meetingname = meetingname
-        self.reply("Meeting name set to: " + meetingname)
+        self.reply(f"Meeting name set to: {meetingname}")
 
     def do_vote(self, nick, line, **kwargs):
         """Start a voting process."""
         if not self.isChair(nick):
             return
         if self.activeVote:
-            self.reply("Voting still open on: " + self.activeVote)
+            self.reply(f"Voting still open on: {self.activeVote}")
             return
         self.activeVote = line
         self.currentVote = {}
@@ -458,7 +459,7 @@ class MeetingCommands(object):
         # people can vote by saying +1, -1 or +0
         # if voters have been specified then only they can vote
         # there can be multiple votes called in a meeting
-        self.reply("Please vote on: " + self.activeVote)
+        self.reply(f"Please vote on: {self.activeVote}")
         self.reply(("Public votes can be registered by saying +1, -1 or +0 in channel "
                     "(for private voting, private message me with 'vote +1|-1|+0 #channelname')"))
 
@@ -481,7 +482,7 @@ class MeetingCommands(object):
             self.reply("No vote in progress")
             return
 
-        self.reply("Voting ended on: " + self.activeVote)
+        self.reply(f"Voting ended on: {self.activeVote}")
         # should probably just store the summary of the results
         vfor = 0
         vagainst = 0
@@ -542,12 +543,12 @@ class MeetingCommands(object):
                     self.reply("Warning: '%s' not in channel" % voter)
                 self.addnick(voter, lines=0)
                 self.voters[voter] = True
-        self.reply("Current voters: " +
-                   ', '.join(sorted(set(list(self.voters.keys()) + [self.owner]))))
+        current_voters = sorted(set(list(self.voters.keys()) + [self.owner]))
+        self.reply(f"Current voters: {', '.join(current_voters)}")
 
     def do_private_commands(self, nick, **kwargs):
         commands = sorted(["#"+x[3:] for x in dir(self) if x[:3] == "do_"])
-        message = "Available commands: " + ', '.join(commands)
+        message = f"Available commands: {', '.join(commands)}"
         self.privateReply(nick, message)
 
     # Commands for anyone
@@ -562,7 +563,7 @@ class MeetingCommands(object):
         m = items.Action(**kwargs)
         self.additem(m)
         if self.config.beNoisy:
-            self.reply("ACTION: " + m.line)
+            self.reply(f"ACTION: {m.line}")
 
     def do_info(self, **kwargs):
         """Add informational item to the minutes."""
@@ -598,7 +599,7 @@ class MeetingCommands(object):
     def do_commands(self, **kwargs):
         commands = sorted(
             ["action", "info", "idea", "nick", "link", "commands"])
-        self.reply("Available commands: " + ', '.join(commands))
+        self.reply(f"Available commands: {', '.join(commands)}")
 
 
 class Meeting(MeetingCommands, object):
@@ -733,8 +734,8 @@ class Meeting(MeetingCommands, object):
             command, line = matchobj.groups('')
             command = command.lower()
             # to define new commands, define a method do_commandname
-            if hasattr(self, "do_"+command):
-                getattr(self, "do_"+command)(nick=nick, line=line,
+            if hasattr(self, f"do_{command}"):
+                getattr(self, f"do_{command}")(nick=nick, line=line,
                                              linenum=linenum, time_=time_)
         else:
             # Detect URLs automatically
@@ -838,4 +839,4 @@ class Meeting(MeetingCommands, object):
                 time_ = parse_time(m.group(1))
                 nick = m.group(2)
                 line = m.group(3)
-                self.addline(nick, "ACTION "+line, time_=time_)
+                self.addline(nick, f"ACTION {line}", time_=time_)

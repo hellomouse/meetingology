@@ -37,7 +37,9 @@ except:
     # without the i18n module
     _ = lambda x: x
 
-import sys, re, types
+import sys
+import re
+import types
 
 from importlib import reload
 from . import meeting
@@ -45,6 +47,7 @@ from . import writers
 
 reload(meeting)
 reload(writers)
+
 
 def configure(advanced):
     # This will be called by supybot to configure this module.  advanced is
@@ -57,7 +60,7 @@ def configure(advanced):
 
 MeetBot = conf.registerPlugin('MeetBot')
 use_supybot_config = conf.registerGlobalValue(MeetBot, 'enableSupybotBasedConfig',
-    registry.Boolean(False, """Enable configuration via the Supybot config
+                                              registry.Boolean(False, """Enable configuration via the Supybot config
                             mechanism."""))
 
 
@@ -66,9 +69,10 @@ class WriterMap(registry.SpaceSeparatedListOfStrings):
     list of 'WriterName:.ext' pairs.  WriterName must be from the
     writers.py module, '.ext' must be an extension starting with a dot.
     """
+
     def set(self, s):
         s = s.split()
-        writer_map = { }
+        writer_map = {}
         for writer in s:
             writer, ext = writer.split(':')
             if not hasattr(writers, writer):
@@ -78,10 +82,12 @@ class WriterMap(registry.SpaceSeparatedListOfStrings):
                                  "at least one more character.")
             writer_map[ext] = getattr(writers, writer)
         self.setValue(writer_map)
+
     def setValue(self, v):
         self.value = v
+
     def __str__(self):
-        writer_list = [ ]
+        writer_list = []
         for ext, writer in self.value.items():
             writer_list.append("%s:%s" % (writer.__name__, ext))
         return " ".join(writer_list)
@@ -91,8 +97,10 @@ class Regex(registry.String):
     def set(self, s):
         regex = re.compile(r'%s' % s)
         self.setValue(regex)
+
     def setValue(self, v):
         self.value = v
+
     def __str__(self):
         return self.value.pattern
 
@@ -128,8 +136,6 @@ class SupybotConfigProxy(object):
         # values).  This will slow things down a little bit, but
         # that's just the cost of doing business.
         if hasattr(value, '__func__'):
-            if sys.version_info < (3,0):
-                return types.MethodType(value.__func__, self, value.__self__.__class__)
             return types.MethodType(value.__func__, self)
         return value
 
@@ -139,7 +145,9 @@ def is_supybotconfig_enabled(OriginalConfig):
             not getattr(OriginalConfig, 'dontBotConfig', False))
 
 
-settable_attributes = [ ]
+settable_attributes = []
+
+
 def setup_config(OriginalConfig):
     # Set all desired variables in the default Config class
     # as Supybot registry variables.

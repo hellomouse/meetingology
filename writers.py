@@ -333,12 +333,12 @@ class _CSSmanager(object):
         elif cssfile in ('', 'default'):
             # default CSS file
             css_fname = os.path.join(os.path.dirname(__file__),
-                                     'css-'+name+'-default.css')
+                                     f'css-{name}-default.css')
         else:
             css_fname = cssfile
         try:
             # Stylesheet specified
-            if getattr(self.M.config, 'cssEmbed_'+name, True):
+            if getattr(self.M.config, f'cssEmbed_{name}', True):
                 # external stylesheet
                 with open(css_fname) as f:
                     css = f.read()
@@ -356,8 +356,9 @@ class _CSSmanager(object):
             print("(exception above ignored, continuing)")
             try:
                 css_fname = os.path.join(os.path.dirname(__file__),
-                                         'css-'+name+'-default.css')
-                css = open(css_fname).read()
+                                         f'css-{name}-default.css')
+                with open(css_fname) as f:
+                    css = f.read()
                 return self._css_head % css
             except:
                 if not self.M.config.safeMode:

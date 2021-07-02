@@ -44,7 +44,7 @@ def inbase(i, chars='abcdefghijklmnopqrstuvwxyz', place=0):
     if div == 0:
         return chars[mod]
     else:
-        return inbase2(div, chars=chars, place=place+1)+chars[mod]
+        return inbase(div, chars=chars, place=place+1)+chars[mod]
 
 #
 # These are objects which we can add to the meeting minutes.  Mainly
@@ -102,7 +102,7 @@ class _BaseItem(object):
             rstref = rstref_orig + inbase(count)
             count += 1
         link = self.logURL(M)
-        M.rst_urls.append(".. _%s: %s" % (rstref, link+"#"+self.anchor))
+        M.rst_urls.append(".. _%s: %s" % (rstref, f"{link}#{self.anchor}"))
         M.rst_refs[rstref] = True
         return rstref
 
@@ -111,7 +111,7 @@ class _BaseItem(object):
         return 'l-%d' % self.linenum
 
     def logURL(self, M):
-        return M.config.basename+'.log.html'
+        return f"{M.config.basename}.log.html"
 
 
 class Topic(_BaseItem):

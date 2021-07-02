@@ -1,6 +1,7 @@
 import re
 from . import writers
 
+
 class Config(object):
     logFileDir = '/var/www/meetbot/'
     filenamePattern = '%(channel)s/%%Y/%(channel)s.%%F-%%H.%%M'
@@ -10,12 +11,12 @@ class Config(object):
     moinFullLogs = True
     writer_map = {
         '.log.html': writers.HTMLlog,
-        #'.1.html': writers.HTML,
+        # '.1.html': writers.HTML,
         '.html': writers.HTML2,
-        #'.rst': writers.ReST,
-        #'.txt': writers.Text,
-        #'.rst.html': writers.HTMLfromReST,
+        # '.rst': writers.ReST,
+        # '.txt': writers.Text,
+        # '.rst.html': writers.HTMLfromReST,
         '.moin.txt': writers.Moin,
-        #'.mw.txt': writers.MediaWiki,
+        # '.mw.txt': writers.MediaWiki,
     }
     command_RE = re.compile(r'^[#\[](\w+)\]?(?:\s+(.*?)|)\s*$')

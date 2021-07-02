@@ -23,7 +23,8 @@ class MeetBotTest(unittest.TestCase):
         sys.argv[1:] = ["replay", "test-script-1.log.txt"]
         sys.path.insert(0, "..")
         try:
-            exec(compile(open("../meeting.py").read(), "../meeting.py", 'exec'), {})
+            with open("../meeting.py", "r") as f:
+                exec(compile(f.read(), "../meeting.py", 'exec'), {})
         finally:
             del sys.path[0]
 
@@ -139,7 +140,8 @@ class MeetBotTest(unittest.TestCase):
                             "Un-chaired was able to chang topic for %s"%name)
 
     #def test_contents_test(self):
-    #    contents = open('test-script-3.log.txt').read()
+    #    with open('test-script-3.log.txt') as f:
+    #       contents = f.read()
     #    M = process_meeting(contents=file('test-script-3.log.txt').read(),
     #                        extraConfig={'writer_map':self.full_writer_map})
     #    results = M.save()
@@ -230,18 +232,21 @@ class MeetBotTest(unittest.TestCase):
             return M
         # Test the %(channel)s and %(network)s commands in Supybot.
         M = getM('%(channel)s-%(network)s')
-        assert M.config.filename().endswith('somechannel-somenetwork'), \
-               "Filename not as expected: "+M.config.filename()
+        filename = M.config.filename()
+        assert filename.endswith('somechannel-somenetwork'), \
+               f"Filename not as expected: {filename}"
         # Test dates in filenames
         M = getM('%(channel)s-%%F')
         import time
-        assert M.config.filename().endswith(time.strftime('somechannel-%F')),\
-               "Filename not as expected: "+M.config.filename()
+        filename = M.config.filename()
+        assert filename.endswith(time.strftime('somechannel-%F')),\
+               f"Filename not as expected: {filename}"
         # Test #meetingname in filenames
         M = getM('%(channel)s-%(meetingname)s')
         M.addline('nobody', '#meetingname blah1234')
-        assert M.config.filename().endswith('somechannel-blah1234'),\
-               "Filename not as expected: "+M.config.filename()
+        filename = M.config.filename()
+        assert filename.endswith('somechannel-blah1234'),\
+               f"Filename not as expected: {filename}"
 
 
 if __name__ == '__main__':
@@ -254,4 +259,4 @@ if __name__ == '__main__':
             if hasattr(MeetBotTest, testname):
                 MeetBotTest(methodName=testname).debug()
             else:
-                MeetBotTest(methodName='test_'+testname).debug()
+                MeetBotTest(methodName=f'test_{testname}').debug()

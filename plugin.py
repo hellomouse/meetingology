@@ -154,7 +154,7 @@ class MeetBot(callbacks.Plugin):
             if url:
                 m = logfile_RE.match(url)
                 if m:
-                    M.channel = "#"+m.group(1)
+                    M.channel = f"#{m.group(1)}"
                     M.starttime = parse_time(m.group(2))
                 M.replay(url)
                 if not M._meetingIsOver:
@@ -204,8 +204,7 @@ class MeetBot(callbacks.Plugin):
                         time_ = time.localtime()
                         private = True
                         voteMeeting.doCastVote(nick, vote, time_, private)
-                        irc.reply("Received for vote: " +
-                                  voteMeeting.activeVote)
+                        irc.reply(f"Received for vote: {voteMeeting.activeVote}")
                     else:
                         irc.reply("No active meetings in this channel")
     vote = wrap(vote, ["something", "channel"])
@@ -320,11 +319,10 @@ class MeetBot(callbacks.Plugin):
         """
         nick = msg.nick
         channel = msg.channel
-        payload = msg.args[1].strip()
 
         # We require a message to go out with the ping, we don't want
         # to waste people's time:
-        if channel[0] != '#':
+        if not channel:
             irc.reply("Not joined to any channel")
             return
         if not message:

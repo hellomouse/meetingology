@@ -28,32 +28,35 @@
 # POSSIBILITY OF SUCH DAMAGE.
 ###
 
-import os, sys
+import os
+import sys
 from supybot.test import *
+
 
 class MeetBotTestCase(ChannelPluginTestCase):
     channel = "#testchannel"
     plugins = ('MeetBot',)
 
     def testRunMeeting(self):
-        test_script = open(os.path.join(os.path.dirname(__file__),
-                                        "tests/test-script-2.log.txt"))
+        with open(os.path.join(os.path.dirname(__file__), "tests/test-script-2.log.txt")) as f:
+            test_script = f.read()
         for line in test_script:
             # Normalize input lines somewhat.
             line = line.strip()
-            if not line: continue
+            if not line:
+                continue
             # This consists of input/output pairs we expect.  If it's
             # not here, it's not checked for.
             match_pairs = (('#startmeeting', 'Meeting started'),
                            ('#endmeeting', 'Meeting ended'),
                            ('#topic +(.*)', 1),
                            ('#meetingtopic +(.*)', 1),
-                           ('#meetingname','The meeting name has been set to'),
+                           ('#meetingname', 'The meeting name has been set to'),
                            ('#chair', 'Current chairs:'),
                            ('#unchair', 'Current chairs:'),
                            )
             # Run the command and get any possible output
-            reply = [ ]
+            reply = []
             self.feedMsg(line)
             r = self.irc.takeMsg()
             while r:
@@ -70,14 +73,14 @@ class MeetBotTestCase(ChannelPluginTestCase):
                     if isinstance(test[1], int):
                         print(groups[test[1]-1], reply)
                         assert re.search(re.escape(groups[test[1]-1]), reply),\
-                              'line "%s" gives output "%s"'%(line, reply)
+                            'line "%s" gives output "%s"' % (line, reply)
                     # Just match the given pattern.
                     else:
-                        if sys.version_info < (3,0):
+                        if sys.version_info < (3, 0):
                             reply = reply.decode('utf-8')
                         print(test[1], reply)
                         assert re.search(test[1], reply), \
-                               'line "%s" gives output "%s"'%(line, reply)
+                            'line "%s" gives output "%s"' % (line, reply)
         test_script.close()
 
 
