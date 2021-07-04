@@ -225,7 +225,7 @@ class MeetBot(callbacks.Plugin):
                 M = meeting_cache.get(Mkey, None)
                 if M:
                     M.addrawline(nick, payload)
-        except:
+        except Exception:
             import traceback
             supylog.debug(traceback.print_exc())
             supylog.debug("(above exception in outFilter, ignoring)")

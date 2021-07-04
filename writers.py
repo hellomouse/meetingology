@@ -360,7 +360,7 @@ class _CSSmanager(object):
                 with open(css_fname) as f:
                     css = f.read()
                 return self._css_head % css
-            except:
+            except Exception:
                 if not self.M.config.safeMode:
                     raise
                 traceback.print_exc()
