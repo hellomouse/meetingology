@@ -106,7 +106,7 @@ class _BaseWriter(object):
         raise NotImplementedError
 
     @property
-    def pagetitle(self):
+    def pagetitle(self) :
         if self.M._meetingTopic:
             title = "%s: %s" % (self.M.channel, self.M._meetingTopic)
             if "meeting" not in self.M._meetingTopic.lower():
@@ -325,7 +325,7 @@ class _CSSmanager(object):
         </style>
         ''')
 
-    def getCSS(self, name):
+    def getCSS(self, name) :
         cssfile = getattr(self.M.config, 'cssFile_'+name, '')
         if cssfile.lower() == 'none':
             # special string 'None' means no style at all
@@ -368,7 +368,7 @@ class _CSSmanager(object):
 
 
 class TextLog(_BaseWriter):
-    def format(self, extension=None):
+    def format(self, extension=None) :
         M = self.M
         """Write raw text logs."""
         return "\n".join(M.lines)
@@ -376,7 +376,7 @@ class TextLog(_BaseWriter):
 
 
 class HTMLlog1(_BaseWriter):
-    def format(self, extension=None):
+    def format(self, extension=None) :
         """Write pretty HTML logs."""
         M = self.M
         # pygments lexing setup:
@@ -423,7 +423,7 @@ class HTMLlog1(_BaseWriter):
 
 
 class HTMLlog2(_BaseWriter, _CSSmanager):
-    def format(self, extension=None):
+    def format(self, extension=None) :
         """Write pretty HTML logs."""
         M = self.M
         lines = []
@@ -506,10 +506,10 @@ HTMLlog = HTMLlog2
 
 
 html_template = textwrap.dedent('''\
-    <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+    <!DOCTYPE HTML>
     <html>
     <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
     <title>%(pageTitle)s</title>
     %(headExtra)s
     </head>
@@ -523,10 +523,10 @@ html_template = textwrap.dedent('''\
 
 class HTML1(_BaseWriter):
     body = textwrap.dedent('''\
-    <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+    <!DOCTYPE HTML>
     <html>
     <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
     <title>%(pageTitle)s</title>
     </head>
     <body>
@@ -567,7 +567,7 @@ class HTML1(_BaseWriter):
     </html>
     ''')
 
-    def format(self, extension=None):
+    def format(self, extension=None) :
         """Write the minutes summary."""
         M = self.M
 
@@ -1005,7 +1005,7 @@ class ReST(_BaseWriter):
 class HTMLfromReST(_BaseWriter):
     def format(self, extension=None):
         M = self.M
-        import docutils
+        import docutils.core
         rst = ReST(M).format(extension)
         rstToHTML = docutils.core.publish_string(rst, writer_name='html',
                                                  settings_overrides={'file_insertion_enabled': 0,
@@ -1325,7 +1325,7 @@ class Moin(_BaseWriter):
             Votes.append("  * " + vsum)
             if M.publicVoters[v]:
                 publicVoters = ', '.join(M.publicVoters[v])
-                Votes.append("   * Voters: " + publicVoters)
+                Votes.append(f"   * Voters: {publicVoters}")
         if not Votes:
             return None
         Votes.insert(0, self.heading('Vote results'))
