@@ -330,8 +330,6 @@ class MeetBot(callbacks.Plugin):
                        "We don't want to go wasting people's times looking for why they are pinged."))
             return
 
-        # Send announcement message
-        irc.queueMsg(ircmsgs.privmsg(channel, message))
         # ping all nicks in lines of about 256
         nickline = ''
         nicks = sorted(irc.state.channels[channel].users,
