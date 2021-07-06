@@ -16,7 +16,7 @@ class Config(object):
         # '.rst': writers.ReST,
         # '.txt': writers.Text,
         # '.rst.html': writers.HTMLfromReST,
-        '.moin.txt': writers.Moin,
+        # '.moin.txt': writers.Moin,
         # '.mw.txt': writers.MediaWiki,
     }
     command_RE = re.compile(r'^[#\[](\w+)\]?(?:\s+(.*?)|)\s*$')
