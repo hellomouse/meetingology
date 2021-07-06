@@ -29,6 +29,9 @@ hr {
     font-style: normal;    /* un-italics it */
     font-weight: bold;
 }
-/* Example: change single item types.  Capitalized command name.
+/* Example: change single item types.  Capitalized command name. */
+.green { color: green; }
+.red { color: red; }
+body > ol > li { margin-bottom: 17px; }
 /* .TOPIC  {  color:navy;  } */
 /* .AGREED {  color:lime;  } */

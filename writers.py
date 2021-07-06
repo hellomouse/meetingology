@@ -666,7 +666,7 @@ class HTML2(_BaseWriter, _CSSmanager):
                     MeetingItems.append(indentItem("</li>", 6))
                     haveSubtopic = False
                 if haveTopic:
-                    MeetingItems.append(indentItem("</li><br>", 2))
+                    MeetingItems.append(indentItem("</li>", 2))
                 item = wrapList(item, 2)
                 haveTopic = True
             elif m.itemtype == "SUBTOPIC":

@@ -283,14 +283,14 @@ class Vote(GenericItem):
 
 class Accepted(GenericItem):
     itemtype = 'ACCEPTED'
-    starthtml = '<font color="green">'
-    endhtml = '</font>'
+    starthtml = '<span class="green">'
+    endhtml = '</span>'
 
 
 class Rejected(GenericItem):
     itemtype = 'REJECTED'
-    starthtml = '<font color="red">'
-    endhtml = '</font>'
+    starthtml = '<span class="red">'
+    endhtml = '</span>'
 
 
 class Link(_BaseItem):
