@@ -38,7 +38,7 @@ hr {
 /* Example: change single item types.  Capitalized command name. */
 .green { color: green; }
 .red { color: red; }
-body > ol > li { margin-bottom: 17px; }
+.summary > li { margin-bottom: 17px; }
 /* .TOPIC  {  color: navy;  } */
 /* .AGREED {  color: lime;  } */
 
@@ -53,7 +53,7 @@ body > ol > li { margin-bottom: 17px; }
  <ol>
   <li py:for="item in agenda">
    <b class="TOPIC">${item.topic.topic}</b> <span py:if="item.topic.nick" class="details">(<a href='${meeting.logs}#${item.topic.anchor}'>${item.topic.nick}</a>, ${item.topic.time})</span>
-   <ol type="a">
+   <ol class="summary" type="a">
     <py:if test="len(item.notes) > 0">
     <li py:for="note in item.notes">
      <i class="itemtype">${note.itemtype}</i>: 

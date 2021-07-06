@@ -647,14 +647,14 @@ class HTML2(_BaseWriter, _CSSmanager):
         # Add all minute items to the table
         MeetingItems = []
         MeetingItems.append(self.heading('Meeting summary'))
-        MeetingItems.append("<ol>")
+        MeetingItems.append('<ol class="summary">')
 
         haveTopic = False
         haveSubtopic = False
         inSublist = False
         inSubsublist = False
         for m in M.minutes:
-            item = "<li>"+m.html2(M)
+            item = f"<li>{m.html2(M)}"
             if m.itemtype == "TOPIC":
                 if inSublist:
                     MeetingItems.append(indentItem("</ol>", 4))
