@@ -90,7 +90,7 @@ class Config(object):
                            "%(MeetBotInfoURL)s")
     # TODO: endMeetingMessage should get filenames from the writers
     endMeetingMessage = ("Meeting ended at %(endtime)s %(timeZone)s.  "
-                         "Minutes at %(urlBasename)s.moin.txt")
+                         "Minutes at %(urlBasename)s.html")
     endMeetingNotification = ("%(meeting)s in %(channel)s has just ended")
     endMeetingNotificationList = []
 
