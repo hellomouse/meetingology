@@ -1,7 +1,7 @@
 /* For the .log.html */
 pre { /*line-height: 125%;*/
       white-space: pre-wrap; }
-body { background: #f0f0f0; }
+body { background: #f0f0f0; line-height: 1; margin-top: .5rem; }
 
 .tm  { color: #007020 }                      /* time */
 .nk  { color: #062873; font-weight: bold }   /* nick, regular */
@@ -14,5 +14,3 @@ body { background: #f0f0f0; }
 .cmd       { color: #007020; font-weight: bold }
 .cmdline  { font-weight: bold }
 
-a {text-decoration:none;}
-a:hover {text-decoration:underline;}

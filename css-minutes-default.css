@@ -1,27 +1,13 @@
 /* This is for the .html in the HTML2 writer */
-body {
-    font-family: Helvetica, sans-serif;
-    font-size:14px;
-}
 h1 {
     text-align: center;
-}
-a {
-    color:navy;
-    text-decoration: none;
-    border-bottom:1px dotted navy;
-}
-a:hover {
-    text-decoration:none;
-    border-bottom: 0;
-    color:#0000B9;
 }
 hr {
     border: 1px solid #ccc;
 }
 /* The (nick, time) item pairs, and other body text things. */
 .details {
-    font-size: 12px;
+    font-size: .875rem;
     font-weight:bold;
 }
 /* The 'AGREED:', 'IDEA', etc, prefix to lines. */
@@ -30,9 +16,8 @@ hr {
     font-weight: bold;
 }
 /* Example: change single item types.  Capitalized command name. */
-.green { color: green; }
-.red { color: red; }
-.summary, div.details { margin-bottom: 34px; }
+.summary, div.details:not(:last-child) { margin-bottom: 34px; }
 .summary > li { margin-bottom: 17px; }
+.container-fluid { max-width: 90%; }
 /* .TOPIC  {  color:navy;  } */
 /* .AGREED {  color:lime;  } */

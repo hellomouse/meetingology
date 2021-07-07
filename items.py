@@ -283,13 +283,13 @@ class Vote(GenericItem):
 
 class Accepted(GenericItem):
     itemtype = 'ACCEPTED'
-    starthtml = '<span class="green">'
+    starthtml = '<span class="text-success">'
     endhtml = '</span>'
 
 
 class Rejected(GenericItem):
     itemtype = 'REJECTED'
-    starthtml = '<span class="red">'
+    starthtml = '<span class="text-danger">'
     endhtml = '</span>'
 
 
