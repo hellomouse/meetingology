@@ -612,7 +612,7 @@ class Meeting(MeetingCommands, object):
     _lurk = False
     _restrictlogs = False
 
-    def __init__(self, channel, owner, botIsOp=False, oldtopic='',
+    def __init__(self, channel, owner, botIsOp=False, botNick='', oldtopic='',
                  filename=None, writeRawLog=False,
                  setTopic=None, sendReply=None, sendPrivateReply=None,
                  getRegistryValue=None,
@@ -636,6 +636,7 @@ class Meeting(MeetingCommands, object):
             self._setTopic = setTopic
         self.owner = owner
         self.botIsOp = botIsOp
+        self.botNick = botNick
         self.channel = channel
         self.network = network
         self.currenttopic = ""
@@ -699,7 +700,8 @@ class Meeting(MeetingCommands, object):
 
     def addnick(self, nick, lines=1):
         """This person has spoken, lines=<how many lines>"""
-        self.attendees[nick] = self.attendees.get(nick, 0) + lines
+        if nick != self.botNick:
+            self.attendees[nick] = self.attendees.get(nick, 0) + lines
 
     def isChair(self, nick):
         """Is the nick a chair?"""

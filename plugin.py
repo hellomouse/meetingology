@@ -122,6 +122,7 @@ class MeetBot(callbacks.Plugin):
             M = meeting.Meeting(channel=channel, network=network, owner=nick,
                                 botIsOp=irc.state.channels[channel].isOp(
                                     irc.nick),
+                                botNick=irc.nick,
                                 oldtopic=irc.state.channels[channel].topic,
                                 writeRawLog=True, safeMode=True,
                                 getRegistryValue=self.registryValue,
