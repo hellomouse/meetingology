@@ -346,7 +346,7 @@ class _CSSmanager(object):
             else:
                 # linked stylesheet
                 css_head = ('''<link rel="stylesheet" type="text/css" '''
-                            '''href="%s">''' % cssfile)
+                            '''href="%s">''' % css_fname)
                 return css_head
         except Exception as exc:
             if not self.M.config.safeMode:
