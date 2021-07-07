@@ -110,11 +110,11 @@ class Config(object):
     update_realtime = True
     # CSS configs
     cssFile_log = 'default'
-    cssEmbed_log = True
+    cssEmbed_log = False
     cssFile_minutes = 'default'
-    cssEmbed_minutes = True
+    cssEmbed_minutes = False
     # Include full log in MoinMoin output
-    moinFullLogs = True
+    moinFullLogs = False
 
     # This tells which writers write out which to extensions.
     writer_map = {
@@ -362,6 +362,8 @@ class MeetingCommands(object):
             return
         m = items.Accepted(nick=nick, **kwargs)
         self.additem(m)
+        if self.config.beNoisy:
+            self.reply(f"ACCEPTED: {m.line}")
     do_accept = do_accepted
 
     def do_rejected(self, nick, **kwargs):
@@ -370,6 +372,8 @@ class MeetingCommands(object):
             return
         m = items.Rejected(nick=nick, **kwargs)
         self.additem(m)
+        if self.config.beNoisy:
+            self.reply(f"REJECTED: {m.line}")
     do_reject = do_rejected
 
     def do_chair(self, nick, line, **kwargs):
@@ -595,6 +599,8 @@ class MeetingCommands(object):
         """Add informational item to the minutes."""
         m = items.Link(**kwargs)
         self.additem(m)
+        if self.config.beNoisy:
+            self.reply(f"URI ADDED: {m.line}")
 
     def do_commands(self, **kwargs):
         commands = sorted(
