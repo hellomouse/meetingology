@@ -29,11 +29,11 @@
 ###
 
 from __future__ import annotations
-from meeting import Meeting
+from . import writers
 import time
 from typing import Any, Tuple, TypeVar, TYPE_CHECKING, Union
 if TYPE_CHECKING:
-    from . import writers
+    from .meeting import Meeting
     from _typeshed import SupportsDivMod
 
 
