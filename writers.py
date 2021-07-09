@@ -34,7 +34,7 @@ import os
 import re
 import time
 import textwrap
-from typing import Any, TYPE_CHECKING
+from typing import Any, Callable, TYPE_CHECKING
 
 from . import __version__
 if TYPE_CHECKING:
