@@ -35,7 +35,7 @@ try:
 except Exception:
     # Placeholder that allows to run the plugin on a bot
     # without the i18n module
-    _ = lambda x: x
+    def _(x): return x
 
 import sys
 import re
@@ -70,7 +70,7 @@ class WriterMap(registry.SpaceSeparatedListOfStrings):
     writers.py module, '.ext' must be an extension starting with a dot.
     """
 
-    def set(self, s):
+    def set(self, s: str):
         s = s.split()
         writer_map = {}
         for writer in s:
@@ -94,7 +94,7 @@ class WriterMap(registry.SpaceSeparatedListOfStrings):
 
 
 class Regex(registry.String):
-    def set(self, s):
+    def set(self, s: str):
         regex = re.compile(r'%s' % s)
         self.setValue(regex)
 
@@ -111,7 +111,7 @@ class SupybotConfigProxy(object):
         OriginalConfig = self.__OriginalConfig
         self.__C = OriginalConfig(*args, **kwargs)
 
-    def __getattr__(self, attrname):
+    def __getattr__(self, attrname: str):
         """Try to get the value from the Supybot registry.  If it's in
         the registry, return it.  If it's not, then proxy it to th.
         """

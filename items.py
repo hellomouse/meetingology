@@ -28,11 +28,18 @@
 # POSSIBILITY OF SUCH DAMAGE.
 ###
 
+from _typeshed import SupportsDivMod
+from meeting import Meeting
 import time
+from typing import Any, Tuple, TypeVar, Union
 from . import writers
 
+_T_contra = TypeVar("_T_contra", contravariant=True)
+_T_co = TypeVar("_T_co", covariant=True)
+_TimeTuple = Tuple[int, int, int, int, int, int, int, int, int]
 
-def inbase(i, chars='abcdefghijklmnopqrstuvwxyz', place=0):
+
+def inbase(i: SupportsDivMod[_T_contra@divmod, _T_co@divmod], chars: str = 'abcdefghijklmnopqrstuvwxyz', place: int = 0) -> str:
     """Converts an integer into a postfix in base 26 using ascii chars.
 
     This is used to make a unique postfix for ReStructured Text URL
@@ -65,8 +72,8 @@ class _BaseItem(object):
     startmoin = ''
     endmoin = ''
 
-    def get_replacements(self, M, escapewith):
-        replacements = {}
+    def get_replacements(self, M: Meeting, escapewith: Union[writers.html, writers.moin, writers.mw, writers.rst, writers.text]) -> dict[str, Any]:
+        replacements: dict[str, Any] = {}
         for name in dir(self):
             if name[0] == "_":
                 continue
@@ -82,8 +89,8 @@ class _BaseItem(object):
                 escapewith(self.url.replace('"', "%22"))
         return replacements
 
-    def template(self, M, escapewith):
-        template = {}
+    def template(self, M: Meeting, escapewith: Union[writers.html, writers.moin, writers.mw, writers.rst, writers.text]) -> dict[str, Any]:
+        template: dict[str, Any] = {}
         for k, v in self.get_replacements(M, escapewith).items():
             if k not in ('itemtype', 'line', 'topic',
                          'url', 'url_quoteescaped',
@@ -92,7 +99,7 @@ class _BaseItem(object):
             template[k] = v
         return template
 
-    def makeRSTref(self, M):
+    def makeRSTref(self, M: Meeting):
         if self.nick[-1] == '_':
             rstref = rstref_orig = "%s%s" % (self.nick, self.time)
         else:
@@ -107,10 +114,10 @@ class _BaseItem(object):
         return rstref
 
     @property
-    def anchor(self):
+    def anchor(self) -> str:
         return 'l-%d' % self.linenum
 
-    def logURL(self, M):
+    def logURL(self, M: Meeting):
         return f"{M.config.basename}.log.html"
 
 
@@ -139,24 +146,24 @@ class Topic(_BaseItem):
     startmoin = '=== '
     endmoin = ' ==='
 
-    def __init__(self, nick, line, linenum, time_):
+    def __init__(self, nick: str, line: str, linenum: int, time_: Union[_TimeTuple, time.struct_time]):
         self.nick = nick
         self.topic = line
         self.linenum = linenum
         self.time = time.strftime("%H:%M", time_)
 
-    def _htmlrepl(self, M):
+    def _htmlrepl(self, M: Meeting):
         repl = self.get_replacements(M, escapewith=writers.html)
         repl['link'] = self.logURL(M)
         return repl
 
-    def html(self, M):
+    def html(self, M: Meeting):
         return self.html_template % self._htmlrepl(M)
 
-    def html2(self, M):
+    def html2(self, M: Meeting):
         return self.html2_template % self._htmlrepl(M)
 
-    def rst(self, M):
+    def rst(self, M: Meeting):
         self.rstref = self.makeRSTref(M)
         repl = self.get_replacements(M, escapewith=writers.rst)
         if repl['topic'] == '':
@@ -164,16 +171,16 @@ class Topic(_BaseItem):
         repl['link'] = self.logURL(M)
         return self.rst_template % repl
 
-    def text(self, M):
+    def text(self, M: Meeting):
         repl = self.get_replacements(M, escapewith=writers.text)
         repl['link'] = self.logURL(M)
         return self.text_template % repl
 
-    def mw(self, M):
+    def mw(self, M: Meeting):
         repl = self.get_replacements(M, escapewith=writers.mw)
         return self.mw_template % repl
 
-    def moin(self, M):
+    def moin(self, M: Meeting):
         repl = self.get_replacements(M, escapewith=writers.moin)
         return self.moin_template % repl
 
@@ -206,39 +213,39 @@ class GenericItem(_BaseItem):
     mw_template = """''%(itemtype)s:'' %(startmw)s%(line)s%(endmw)s  (%(nick)s, %(time)s)"""
     moin_template = """''%(itemtype)s:'' %(startmoin)s%(line)s%(endmoin)s  (%(nick)s, %(time)s)"""
 
-    def __init__(self, nick, line, linenum, time_):
+    def __init__(self, nick: str, line: str, linenum: int, time_: Union[_TimeTuple, time.struct_time]):
         self.nick = nick
         self.line = line
         self.linenum = linenum
         self.time = time.strftime("%H:%M", time_)
 
-    def _htmlrepl(self, M):
+    def _htmlrepl(self, M: Meeting):
         repl = self.get_replacements(M, escapewith=writers.html)
         repl['link'] = self.logURL(M)
         return repl
 
-    def html(self, M):
+    def html(self, M: Meeting):
         return self.html_template % self._htmlrepl(M)
 
-    def html2(self, M):
+    def html2(self, M: Meeting):
         return self.html2_template % self._htmlrepl(M)
 
-    def rst(self, M):
+    def rst(self, M: Meeting):
         self.rstref = self.makeRSTref(M)
         repl = self.get_replacements(M, escapewith=writers.rst)
         repl['link'] = self.logURL(M)
         return self.rst_template % repl
 
-    def text(self, M):
+    def text(self, M: Meeting):
         repl = self.get_replacements(M, escapewith=writers.text)
         repl['link'] = self.logURL(M)
         return self.text_template % repl
 
-    def mw(self, M):
+    def mw(self, M: Meeting):
         repl = self.get_replacements(M, escapewith=writers.mw)
         return self.mw_template % repl
 
-    def moin(self, M):
+    def moin(self, M: Meeting):
         repl = self.get_replacements(M, escapewith=writers.moin)
         return self.moin_template % repl
 
@@ -312,7 +319,7 @@ class Link(_BaseItem):
     mw_template = """''%(itemtype)s:'' %(startmw)s%(url)s %(line)s%(endmw)s  (%(nick)s, %(time)s)"""
     moin_template = """''%(itemtype)s:'' %(startmoin)s%(url)s %(line)s%(endmoin)s  (%(nick)s, %(time)s)"""
 
-    def __init__(self, nick, line, linenum, time_):
+    def __init__(self, nick: str, line: str, linenum: int, time_: Union[_TimeTuple, time.struct_time]):
         self.nick = nick
         self.linenum = linenum
         self.time = time.strftime("%H:%M", time_)
@@ -321,7 +328,7 @@ class Link(_BaseItem):
         self.url_readable = self.url  # readable line version
         self.line = self.line.rstrip()
 
-    def _htmlrepl(self, M):
+    def _htmlrepl(self, M: Meeting):
         repl = self.get_replacements(M, escapewith=writers.html)
         # special: replace doublequote only for the URL.
         repl['url'] = writers.html(self.url.replace('"', "%22"))
@@ -329,28 +336,28 @@ class Link(_BaseItem):
         repl['link'] = self.logURL(M)
         return repl
 
-    def html(self, M):
+    def html(self, M: Meeting):
         return self.html_template % self._htmlrepl(M)
 
-    def html2(self, M):
+    def html2(self, M: Meeting):
         return self.html2_template % self._htmlrepl(M)
 
-    def rst(self, M):
+    def rst(self, M: Meeting):
         self.rstref = self.makeRSTref(M)
         repl = self.get_replacements(M, escapewith=writers.rst)
         repl['link'] = self.logURL(M)
         #repl['url'] = writers.rst(self.url)
         return self.rst_template % repl
 
-    def text(self, M):
+    def text(self, M: Meeting):
         repl = self.get_replacements(M, escapewith=writers.text)
         repl['link'] = self.logURL(M)
         return self.text_template % repl
 
-    def mw(self, M):
+    def mw(self, M: Meeting):
         repl = self.get_replacements(M, escapewith=writers.mw)
         return self.mw_template % repl
 
-    def moin(self, M):
+    def moin(self, M: Meeting):
         repl = self.get_replacements(M, escapewith=writers.moin)
         return self.moin_template % repl

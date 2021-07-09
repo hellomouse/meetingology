@@ -32,13 +32,15 @@ import os
 import re
 import time
 import textwrap
+from typing import Any
 
 from . import __version__
+from .meeting import Meeting
 
 # Data sanitizing for various output methods
 
 
-def html(text):
+def html(text: str):
     """Escape bad sequences (in HTML) in user-generated lines."""
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
@@ -46,22 +48,22 @@ def html(text):
 rstReplaceRE = re.compile('_( |-|$)')
 
 
-def rst(text):
+def rst(text: str):
     """Escapes bad sequences in reST"""
     return rstReplaceRE.sub(r'\_\1', text)
 
 
-def text(text):
+def text(text: str):
     """Escapes bad sequences in text (not implemented yet)"""
     return text
 
 
-def mw(text):
+def mw(text: str):
     """Escapes bad sequences in MediaWiki markup (not implemented yet)"""
     return text
 
 
-def moin(text):
+def moin(text: str):
     """Escapes bad sequences in Moin Moin wiki markup (not implemented yet)"""
     return text
 
@@ -71,17 +73,17 @@ class TextWrapper(textwrap.TextWrapper):
     wordsep_re = re.compile(r'(\s+)')
 
 
-def wrapList(item, indent=0):
+def wrapList(item: str, indent: int = 0):
     return TextWrapper(width=72, initial_indent=' '*indent,
                        subsequent_indent=' '*(indent+2),
                        break_long_words=False).fill(item)
 
 
-def indentItem(item, indent=0):
+def indentItem(item: str, indent: int = 0):
     return ' '*indent + item
 
 
-def replaceWRAP(item):
+def replaceWRAP(item: str):
     re_wrap = re.compile(r'sWRAPs(.*)eWRAPe', re.DOTALL)
 
     def repl(m):
@@ -90,10 +92,10 @@ def replaceWRAP(item):
 
 
 class _BaseWriter(object):
-    def __init__(self, M, **kwargs):
+    def __init__(self, M: Meeting, **kwargs):
         self.M = M
 
-    def format(self, extension=None):
+    def format(self, extension: str = None):
         """Override this method to implement the formatting.
 
         For file output writers, the method should return a unicode
@@ -106,7 +108,7 @@ class _BaseWriter(object):
         raise NotImplementedError
 
     @property
-    def pagetitle(self) :
+    def pagetitle(self):
         if self.M._meetingTopic:
             title = "%s: %s" % (self.M.channel, self.M._meetingTopic)
             if "meeting" not in self.M._meetingTopic.lower():
@@ -155,7 +157,7 @@ class _BaseWriter(object):
                 continue
             yield m
 
-    def get_template(self, escape=lambda s: s):
+    def get_template(self, escape: function = lambda s: s):
         M = self.M
         repl = self.replacements()
 
@@ -258,7 +260,7 @@ class _BaseWriter(object):
 
         return repl
 
-    def get_template2(self, escape=lambda s: s):
+    def get_template2(self, escape: function = lambda s: s):
         # let's make the data structure easier to use in the template
         repl = self.get_template(escape=escape)
         repl = {
@@ -290,7 +292,7 @@ class Template(_BaseWriter):
     templater.  Otherwise, parse with a HTML-based genshi templater.
     """
 
-    def format(self, extension=None, template='+template.html'):
+    def format(self, extension: str = None, template: str = '+template.html'):
         repl = self.get_template2()
 
         # If `template` begins in '+', then it in relative to the
@@ -325,7 +327,7 @@ class _CSSmanager(object):
         </style>
         ''')
 
-    def getCSS(self, name) :
+    def getCSS(self, name: str):
         cssfile = getattr(self.M.config, f'cssFile_{name}', '')
         if cssfile.lower() == 'none':
             # special string 'None' means no style at all
@@ -368,7 +370,7 @@ class _CSSmanager(object):
 
 
 class TextLog(_BaseWriter):
-    def format(self, extension=None) :
+    def format(self, extension: str = None):
         M = self.M
         """Write raw text logs."""
         return "\n".join(M.lines)
@@ -376,7 +378,7 @@ class TextLog(_BaseWriter):
 
 
 class HTMLlog1(_BaseWriter):
-    def format(self, extension=None) :
+    def format(self, extension: str = None) -> str:
         """Write pretty HTML logs."""
         M = self.M
         # pygments lexing setup:
@@ -423,7 +425,7 @@ class HTMLlog1(_BaseWriter):
 
 
 class HTMLlog2(_BaseWriter, _CSSmanager):
-    def format(self, extension=None) :
+    def format(self, extension: str = None) -> str:
         """Write pretty HTML logs."""
         M = self.M
         lines = []
@@ -571,7 +573,7 @@ class HTML1(_BaseWriter):
     </html>
     ''')
 
-    def format(self, extension=None) :
+    def format(self, extension: str = None) -> str:
         """Write the minutes summary."""
         M = self.M
 
@@ -713,7 +715,7 @@ class HTML2(_BaseWriter, _CSSmanager):
         MeetingItems = "\n".join(MeetingItems)
         return MeetingItems
 
-    def votes(self):
+    def votes(self) -> str:
         M = self.M
         # Votes
         Votes = []
@@ -738,7 +740,7 @@ class HTML2(_BaseWriter, _CSSmanager):
         Votes = "\n".join(Votes)
         return Votes
 
-    def actionItems(self):
+    def actionItems(self) -> str:
         """Return the 'Action items' block."""
         M = self.M
         # Action Items
@@ -756,7 +758,7 @@ class HTML2(_BaseWriter, _CSSmanager):
         ActionItems = "\n".join(ActionItems)
         return ActionItems
 
-    def actionItemsPerson(self):
+    def actionItemsPerson(self) -> str:
         """Return the 'Action items, by person' block."""
         M = self.M
         # Action Items, by person (This could be made lots more efficient)
@@ -790,7 +792,7 @@ class HTML2(_BaseWriter, _CSSmanager):
         ActionItemsPerson = "\n".join(ActionItemsPerson)
         return ActionItemsPerson
 
-    def doneItems(self):
+    def doneItems(self) -> str:
         M = self.M
         # Done Items
         DoneItems = []
@@ -808,7 +810,7 @@ class HTML2(_BaseWriter, _CSSmanager):
         DoneItems = "\n".join(DoneItems)
         return DoneItems
 
-    def peoplePresent(self):
+    def peoplePresent(self) -> str:
         """Return the 'People present' block."""
         # People Attending
         PeoplePresent = []
@@ -822,10 +824,10 @@ class HTML2(_BaseWriter, _CSSmanager):
         PeoplePresent = "\n".join(PeoplePresent)
         return PeoplePresent
 
-    def heading(self, name):
+    def heading(self, name: str) -> str:
         return '<h3>%s</h3>' % name
 
-    def format(self, extension=None):
+    def format(self, extension: str = None) -> str:
         """Write the minutes summary."""
         M = self.M
 
@@ -916,7 +918,7 @@ class ReST(_BaseWriter):
     .. _`MeetBot`: %(MeetBotInfoURL)s
     """)
 
-    def format(self, extension=None):
+    def format(self, extension: str = None) -> str:
         """Return a ReStructured Text minutes summary."""
         M = self.M
         # Agenda items
@@ -1007,7 +1009,7 @@ class ReST(_BaseWriter):
 
 
 class HTMLfromReST(_BaseWriter):
-    def format(self, extension=None):
+    def format(self, extension: str = None):
         M = self.M
         import docutils.core
         rst = ReST(M).format(extension)
@@ -1019,7 +1021,7 @@ class HTMLfromReST(_BaseWriter):
 
 
 class Text(_BaseWriter):
-    def meetingItems(self):
+    def meetingItems(self) -> str:
         M = self.M
         # Agenda items
         MeetingItems = []
@@ -1041,7 +1043,7 @@ class Text(_BaseWriter):
         MeetingItems = "\n".join(MeetingItems)
         return MeetingItems
 
-    def actionItems(self):
+    def actionItems(self) -> str:
         M = self.M
         # Action Items
         ActionItems = []
@@ -1057,7 +1059,7 @@ class Text(_BaseWriter):
         ActionItems = "\n".join(ActionItems)
         return ActionItems
 
-    def actionItemsPerson(self):
+    def actionItemsPerson(self) -> str:
         M = self.M
         # Action Items, by person (This could be made lots more efficient)
         ActionItemsPerson = []
@@ -1093,7 +1095,7 @@ class Text(_BaseWriter):
         ActionItemsPerson = "\n".join(ActionItemsPerson)
         return ActionItemsPerson
 
-    def peoplePresent(self):
+    def peoplePresent(self) -> str:
         M = self.M
         # People Attending
         PeoplePresent = []
@@ -1104,10 +1106,10 @@ class Text(_BaseWriter):
         PeoplePresent = "\n".join(PeoplePresent)
         return PeoplePresent
 
-    def heading(self, name):
+    def heading(self, name: str) -> str:
         return '%s\n%s\n' % (name, '-'*len(name))
 
-    def format(self, extension=None):
+    def format(self, extension: str = None) -> str:
         """Return a plain text minutes summary."""
         M = self.M
 
@@ -1144,7 +1146,7 @@ class Text(_BaseWriter):
 class MediaWiki(_BaseWriter):
     """Outputs MediaWiki formats."""
 
-    def meetingItems(self):
+    def meetingItems(self) -> str:
         M = self.M
         # Agenda items
         MeetingItems = []
@@ -1163,7 +1165,7 @@ class MediaWiki(_BaseWriter):
         MeetingItems = "\n".join(MeetingItems)
         return MeetingItems
 
-    def actionItems(self):
+    def actionItems(self) -> str:
         M = self.M
         # Action Items
         ActionItems = []
@@ -1179,7 +1181,7 @@ class MediaWiki(_BaseWriter):
         ActionItems = "\n".join(ActionItems)
         return ActionItems
 
-    def actionItemsPerson(self):
+    def actionItemsPerson(self) -> str:
         M = self.M
         # Action Items, by person (This could be made lots more efficient)
         ActionItemsPerson = []
@@ -1217,7 +1219,7 @@ class MediaWiki(_BaseWriter):
         ActionItemsPerson = "\n".join(ActionItemsPerson)
         return ActionItemsPerson
 
-    def peoplePresent(self):
+    def peoplePresent(self) -> str:
         M = self.M
         # People Attending
         PeoplePresent = []
@@ -1228,7 +1230,7 @@ class MediaWiki(_BaseWriter):
         PeoplePresent = "\n".join(PeoplePresent)
         return PeoplePresent
 
-    def heading(self, name, level=1):
+    def heading(self, name: str, level: int = 1) -> str:
         return '%s %s %s\n' % ('='*(level+1), name, '='*(level+1))
 
     body_start = textwrap.dedent("""\
@@ -1238,7 +1240,7 @@ class MediaWiki(_BaseWriter):
             %(timeZone)s.  The full logs are available at
             %(fullLogsFullURL)seWRAPe""")
 
-    def format(self, extension=None):
+    def format(self, extension: str = None) -> str:
         """Return a MediaWiki formatted minutes summary."""
         M = self.M
 
@@ -1266,10 +1268,10 @@ class MediaWiki(_BaseWriter):
 
 
 class PmWiki(MediaWiki, object):
-    def heading(self, name, level=1):
+    def heading(self, name: str, level: int = 1) -> str:
         return '%s %s\n' % ('!'*(level+1), name)
 
-    def replacements(self):
+    def replacements(self) -> dict[str, Any]:
         # repl = super(PmWiki, self).replacements(self) # fails, type checking
         repl = MediaWiki.replacements.__func__(self)
         repl['pageTitleHeading'] = self.heading(repl['pageTitle'], level=0)
@@ -1279,7 +1281,7 @@ class PmWiki(MediaWiki, object):
 class Moin(_BaseWriter):
     """Outputs MoinMoin formats."""
 
-    def meetingItems(self):
+    def meetingItems(self) -> str:
         M = self.M
         # Agenda items
         MeetingItems = []
@@ -1308,7 +1310,7 @@ class Moin(_BaseWriter):
         MeetingItems = "\n".join(MeetingItems)
         return MeetingItems
 
-    def fullLog(self):
+    def fullLog(self) -> str:
         M = self.M
         Lines = []
         Lines.append(self.heading('Full log'))
@@ -1336,7 +1338,7 @@ class Moin(_BaseWriter):
         Votes = "\n".join(Votes)
         return Votes
 
-    def actionItems(self):
+    def actionItems(self) -> str:
         M = self.M
         # Action Items
         ActionItems = []
@@ -1352,7 +1354,7 @@ class Moin(_BaseWriter):
         ActionItems = "\n".join(ActionItems)
         return ActionItems
 
-    def actionItemsPerson(self):
+    def actionItemsPerson(self) -> str:
         M = self.M
         # Action Items, by person (This could be made lots more efficient)
         ActionItemsPerson = []
@@ -1388,7 +1390,7 @@ class Moin(_BaseWriter):
         ActionItemsPerson = "\n".join(ActionItemsPerson)
         return ActionItemsPerson
 
-    def doneItems(self):
+    def doneItems(self) -> str:
         M = self.M
         # Done Items
         DoneItems = []
@@ -1404,7 +1406,7 @@ class Moin(_BaseWriter):
         DoneItems = "\n".join(DoneItems)
         return DoneItems
 
-    def peoplePresent(self):
+    def peoplePresent(self) -> str:
         M = self.M
         # People Attending
         PeoplePresent = []
@@ -1424,7 +1426,7 @@ class Moin(_BaseWriter):
              * %(pageTitleHeading)s, started by %(owner)s, %(startdate)s at %(starttimeshort)s &mdash; %(endtimeshort)s %(timeZone)s.
              * Full logs at %(fullLogsFullURL)s""")
 
-    def format(self, extension=None):
+    def format(self, extension: str = None) -> str:
         """Return a MoinMoin formatted minutes summary."""
         M = self.M
 
