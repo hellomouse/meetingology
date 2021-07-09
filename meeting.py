@@ -134,6 +134,8 @@ class MeetingCommands(object):
             return
         m = items.Done(nick=nick, **kwargs)
         self.additem(m)
+        if self.config.beNoisy:
+            self.reply(f"DONE: {m.line}")
 
     def do_agreed(self, nick: str, **kwargs):
         """Add agreement to the minutes - chairs only."""
@@ -362,16 +364,22 @@ class MeetingCommands(object):
         """Add informational item to the minutes."""
         m = items.Info(**kwargs)
         self.additem(m)
+        if self.config.beNoisy:
+            self.reply(f"INFO: {m.line}")
 
     def do_idea(self, **kwargs):
         """Add informational item to the minutes."""
         m = items.Idea(**kwargs)
         self.additem(m)
+        if self.config.beNoisy:
+            self.reply(f"IDEA: {m.line}")
 
     def do_help(self, **kwargs):
         """Add call for help to the minutes."""
         m = items.Help(**kwargs)
         self.additem(m)
+        if self.config.beNoisy:
+            self.reply(f"HELP: {m.line}")
     do_halp = do_help
 
     def do_nick(self, nick: str, line: str, **kwargs):
