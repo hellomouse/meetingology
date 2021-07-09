@@ -29,7 +29,7 @@
 ###
 
 from io import TextIOWrapper
-from typing import Any, Callable, Union
+from typing import Any, Callable, Optional, Union
 from . import __version__
 import os
 import sys
@@ -409,12 +409,13 @@ class Meeting(MeetingCommands, object):
     _lurk = False
     _restrictlogs = False
 
-    def __init__(self, channel: str, owner: str, botIsOp: bool = False, botNick: str = '', oldtopic: str = '',
-                 filename: str = None, writeRawLog: bool = False,
-                 setTopic: Callable = None, sendReply: Callable = None, sendPrivateReply: Callable = None,
-                 getRegistryValue: Callable = None,
-                 safeMode: bool = False, channelNicks=None,
-                 extraConfig: dict[str, Any] = {}, network: str = 'nonetwork'):
+    def __init__(self, channel: str, owner: str, botIsOp: Optional[bool] = False, botNick: Optional[str] = '', oldtopic: Optional[str] = '',
+                 filename: Optional[str] = None, writeRawLog: Optional[bool] = False,
+                 setTopic: Optional[Callable[[str], None]] = None, sendReply: Optional[Callable[[str], None]] = None, sendPrivateReply: Optional[Callable[[str, str], None]] = None,
+                 getRegistryValue: Optional[Callable[[
+                     str, Optional[str], Optional[str], Optional[bool]], Any]] = None,
+                 safeMode: Optional[bool] = False, channelNicks: Optional[list[str]] = None,
+                 extraConfig: Optional[dict[str, Any]] = {}, network: str = 'nonetwork'):
 
         # Load configuration
         self.config = Config
@@ -808,9 +809,9 @@ class Config(object):
             # then we only want to update those writers which say they
             # should be updated step-by-step.
             if (realtime_update and (not self.update_realtime or
-                                         not getattr(writer, 'update_realtime', False) or
-                                         getattr(self, '_filename', None))
-                    ):
+                                     not getattr(writer, 'update_realtime', False) or
+                                     getattr(self, '_filename', None))
+                ):
                 continue
             # Parse embedded arguments
             if '|' in extension:
