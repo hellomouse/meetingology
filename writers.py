@@ -28,14 +28,17 @@
 # POSSIBILITY OF SUCH DAMAGE.
 ###
 
+from __future__ import annotations
+
 import os
 import re
 import time
 import textwrap
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from . import __version__
-from .meeting import Meeting
+if TYPE_CHECKING:
+    from .meeting import Meeting
 
 # Data sanitizing for various output methods
 

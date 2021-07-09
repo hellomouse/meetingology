@@ -28,11 +28,13 @@
 # POSSIBILITY OF SUCH DAMAGE.
 ###
 
+from __future__ import annotations
 from _typeshed import SupportsDivMod
 from meeting import Meeting
 import time
-from typing import Any, Tuple, TypeVar, Union
-from . import writers
+from typing import Any, Tuple, TypeVar, TYPE_CHECKING, Union
+if TYPE_CHECKING:
+    from . import writers
 
 _T_contra = TypeVar("_T_contra", contravariant=True)
 _T_co = TypeVar("_T_co", covariant=True)
