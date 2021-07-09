@@ -29,16 +29,17 @@
 ###
 
 from __future__ import annotations
-from _typeshed import SupportsDivMod
 from meeting import Meeting
 import time
 from typing import Any, Tuple, TypeVar, TYPE_CHECKING, Union
 if TYPE_CHECKING:
     from . import writers
+    from _typeshed import SupportsDivMod
 
-_T_contra = TypeVar("_T_contra", contravariant=True)
-_T_co = TypeVar("_T_co", covariant=True)
-_TimeTuple = Tuple[int, int, int, int, int, int, int, int, int]
+
+    _T_contra = TypeVar("_T_contra", contravariant=True)
+    _T_co = TypeVar("_T_co", covariant=True)
+    _TimeTuple = Tuple[int, int, int, int, int, int, int, int, int]
 
 
 def inbase(i: SupportsDivMod[_T_contra@divmod, _T_co@divmod], chars: str = 'abcdefghijklmnopqrstuvwxyz', place: int = 0) -> str:

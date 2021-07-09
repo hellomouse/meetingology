@@ -29,7 +29,7 @@
 ###
 
 from io import TextIOWrapper
-from typing import Any, Union
+from typing import Any, Callable, Union
 from . import __version__
 import os
 import sys
@@ -411,8 +411,8 @@ class Meeting(MeetingCommands, object):
 
     def __init__(self, channel: str, owner: str, botIsOp: bool = False, botNick: str = '', oldtopic: str = '',
                  filename: str = None, writeRawLog: bool = False,
-                 setTopic: function = None, sendReply: function = None, sendPrivateReply: function = None,
-                 getRegistryValue: function = None,
+                 setTopic: Callable = None, sendReply: Callable = None, sendPrivateReply: Callable = None,
+                 getRegistryValue: Callable = None,
                  safeMode: bool = False, channelNicks=None,
                  extraConfig: dict[str, Any] = {}, network: str = 'nonetwork'):
 

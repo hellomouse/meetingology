@@ -160,7 +160,7 @@ class _BaseWriter(object):
                 continue
             yield m
 
-    def get_template(self, escape: function = lambda s: s):
+    def get_template(self, escape: Callable = lambda s: s):
         M = self.M
         repl = self.replacements()
 
@@ -263,7 +263,7 @@ class _BaseWriter(object):
 
         return repl
 
-    def get_template2(self, escape: function = lambda s: s):
+    def get_template2(self, escape: Callable = lambda s: s):
         # let's make the data structure easier to use in the template
         repl = self.get_template(escape=escape)
         repl = {
