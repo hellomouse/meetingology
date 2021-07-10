@@ -11,8 +11,7 @@ class Config(object):
     moinFullLogs = True
     writer_map = {
         '.log.html': writers.HTMLlog,
-        # '.1.html': writers.HTML,
-        '.html': writers.HTML2,
+        '.html': writers.HTML,
         # '.rst': writers.ReST,
         # '.txt': writers.Text,
         # '.rst.html': writers.HTMLfromReST,

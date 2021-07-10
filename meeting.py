@@ -723,8 +723,7 @@ class Config(object):
     # This tells which writers write out which to extensions.
     writer_map = {
         '.log.html': writers.HTMLlog,
-        '.1.html': writers.HTML,
-        '.html': writers.HTML2,
+        '.html': writers.HTML,
         '.rst': writers.ReST,
         '.txt': writers.Text,
         '.rst.html': writers.HTMLfromReST,
