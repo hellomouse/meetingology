@@ -198,7 +198,7 @@ class MeetBot(callbacks.Plugin):
             # Bypass calling commands for bots
             M.addrawline(nick, payload)
         else:
-            M.addline(nick, payload, isOp=chanState.isOp(nick))
+            M.addline(nick, payload, isop=chanState.isOp(nick))
         # End meeting if requested
         if M._meetingIsOver:
             del meeting_cache[Mkey]
