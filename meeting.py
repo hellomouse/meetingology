@@ -45,6 +45,8 @@ from . import items
 
 reload(items)
 
+Items = Union[items.Accepted, items.Action, items.Agreed, items.Done, items.GenericItem, items.Help, items.Idea, items.Link, items.Rejected, items.Subtopic, items.Topic, items.Vote]
+
 
 class MeetingCommands(object):
     # Command definitions
@@ -438,8 +440,8 @@ class Meeting(MeetingCommands, object):
         self.currenttopic = ""
         self.oldtopic = oldtopic
         self.lines = []
-        self.minutes = []
-        self.attendees = {}
+        self.minutes: list[Items] = []
+        self.attendees: dict[str, int] = {}
         self.chairs = {}
         self.voters = {}
         self.publicVoters = {}
@@ -583,7 +585,7 @@ class Meeting(MeetingCommands, object):
         linenum = len(self.lines)
         return linenum
 
-    def additem(self, m: Union[items.Accepted, items.Action, items.Agreed, items.Done, items.GenericItem, items.Help, items.Idea, items.Link, items.Rejected, items.Subtopic, items.Topic, items.Vote]):
+    def additem(self, m: Items):
         """Add an item to the meeting minutes list."""
         self.minutes.append(m)
 
@@ -707,7 +709,7 @@ class Config(object):
     moinFullLogs = False
 
     # This tells which writers write out which to extensions.
-    writer_map = {
+    writer_map: dict[str, writers.Writers] = {
         '.log.html': writers.HTMLlog,
         '.html': writers.HTML,
         '.rst': writers.ReST,
@@ -727,7 +729,7 @@ class Config(object):
             setattr(self, k, v)
 
     def setWriters(self):
-        self.writers = {}
+        self.writers: dict[str, writers.Writers] = {}
         if self.writeRawLog:
             self.writers['.log.txt'] = writers.TextLog(self.M)
         for extension, writer in self.writer_map.items():

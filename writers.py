@@ -34,7 +34,7 @@ import os
 import re
 import time
 import textwrap
-from typing import Any, Callable, TYPE_CHECKING
+from typing import Any, Callable, TYPE_CHECKING, Union
 
 from . import __version__
 if TYPE_CHECKING:
@@ -488,7 +488,7 @@ class HTML(_BaseWriter, _CSSmanager):
         M = self.M
 
         # Add all minute items to the table
-        MeetingItems = []
+        MeetingItems: list[str] = []
         MeetingItems.append(self.heading('Meeting summary'))
         MeetingItems.append('<ol class="summary">')
 
@@ -1286,3 +1286,6 @@ class Moin(_BaseWriter):
         body = replaceWRAP(body)
 
         return body
+
+
+Writers = Union[HTML, HTMLfromReST, HTMLlog, TextLog, Template, ReST, MediaWiki, PmWiki, Moin]
