@@ -76,8 +76,6 @@ class MeetBotTestCase(ChannelPluginTestCase):
                             'line "%s" gives output "%s"' % (line, reply)
                     # Just match the given pattern.
                     else:
-                        if sys.version_info < (3, 0):
-                            reply = reply.decode('utf-8')
                         print(test[1], reply)
                         assert re.search(test[1], reply), \
                             'line "%s" gives output "%s"' % (line, reply)
