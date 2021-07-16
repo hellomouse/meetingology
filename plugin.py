@@ -73,6 +73,7 @@ class MeetBot(callbacks.Plugin):
     # This captures all messages coming into the bot.
     def doPrivmsg(self, irc: Irc, msg: ircmsgs.IrcMsg):
         nick: str = msg.nick
+        host = msg.host
         channel: str = msg.channel
         network: str = irc.network
         payload: str = msg.args[1].strip()
@@ -193,7 +194,11 @@ class MeetBot(callbacks.Plugin):
         if not M or M._meetingIsOver:
             return
         # Add line to our meeting buffer
-        M.addline(nick, payload, chanState.isOp(nick))
+        if "hellomouse/bin" in host:
+            # Bypass calling commands for bots
+            M.addrawline(nick, payload)
+        else:
+            M.addline(nick, payload, isOp=chanState.isOp(nick))
         # End meeting if requested
         if M._meetingIsOver:
             del meeting_cache[Mkey]
