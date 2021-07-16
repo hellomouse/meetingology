@@ -820,7 +820,7 @@ class Config(object):
                 # Have a way to override saving, so no disk files are written.
                 if getattr(self, "dontSave", False):
                     continue
-                self.writeToFile(self.enc(text), f"{rawname}{extension}")
+                self.writeToFile(text, f"{rawname}{extension}")
         return results
 
     def writeToFile(self, string: str, filename: str):
