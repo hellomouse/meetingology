@@ -1,19 +1,21 @@
-import os, sys
+from .. import writers
+from .. import meeting
+import os
+import sys
 #import re
 import tempfile
 import unittest
 
 os.environ['MEETBOT_RUNNING_TESTS'] = '1'
-from .. import meeting
-from .. import writers
 
 running_tests = True
 
+
 def process_meeting(contents, extraConfig={}):
     return meeting.process_meeting(contents=contents,
-                                channel="#none",  filename='/dev/null',
-                                dontSave=True, safeMode=False,
-                                extraConfig=extraConfig)
+                                   channel="#none",  filename='/dev/null',
+                                   dontSave=True, safeMode=False,
+                                   extraConfig=extraConfig)
 
 
 class MeetBotTest(unittest.TestCase):
@@ -40,7 +42,7 @@ class MeetBotTest(unittest.TestCase):
             output = os.popen("supybot-test ./MeetBot 2>&1").read()
             print(output)
             assert 'FAILED' not in output, "Supybot-based tests failed."
-            assert '\nOK\n'     in output, "Supybot-based tests failed."
+            assert '\nOK\n' in output, "Supybot-based tests failed."
         finally:
             os.unlink("MeetBot")
 
@@ -52,10 +54,8 @@ class MeetBotTest(unittest.TestCase):
 
     full_writer_map = {
         '.log.txt':     writers.TextLog,
-        '.log.1.html':  writers.HTMLlog1,
-        '.log.html':    writers.HTMLlog2,
-        '.1.html':      writers.HTML1,
-        '.html':        writers.HTML2,
+        '.log.html':    writers.HTMLlog,
+        '.html':        writers.HTML,
         '.rst':         writers.ReST,
         '.rst.html':    writers.HTMLfromReST,
         '.txt':         writers.Text,
@@ -63,7 +63,7 @@ class MeetBotTest(unittest.TestCase):
         '.pmw':         writers.PmWiki,
         '.tmp.txt|template=+template.txt':   writers.Template,
         '.tmp.html|template=+template.html': writers.Template,
-        }
+    }
 
     def M_trivial(self, contents=None, extraConfig={}):
         if contents is None:
@@ -74,8 +74,8 @@ class MeetBotTest(unittest.TestCase):
     def test_script_1(self):
         with open('test-script-1.log.txt') as f:
             process_meeting(contents=f.read(),
-                            extraConfig={'writer_map':self.full_writer_map})
-    #def test_script_3(self):
+                            extraConfig={'writer_map': self.full_writer_map})
+    # def test_script_3(self):
     #   process_meeting(contents=file('test-script-3.log.txt').read(),
     #                   extraConfig={'writer_map':self.full_writer_map})
 
@@ -103,6 +103,7 @@ class MeetBotTest(unittest.TestCase):
 
     10:10:10 <x> #endmeeting
     """
+
     def test_contents_test2(self):
         """Ensure that certain input lines do appear in the output.
 
@@ -110,36 +111,39 @@ class MeetBotTest(unittest.TestCase):
         appear in the output.
         """
         M = process_meeting(contents=self.all_commands_test_contents,
-                            extraConfig={'writer_map':self.full_writer_map})
+                            extraConfig={'writer_map': self.full_writer_map})
         results = M.save()
         for name, output in results.items():
-            self.assertTrue('h6k4orkac' in output, "Topic failed for %s"%name)
-            self.assertTrue('blaoulrao' in output, "Info failed for %s"%name)
-            self.assertTrue('alrkkcao4' in output, "Idea failed for %s"%name)
-            self.assertTrue('ntoircoa5' in output, "Help failed for %s"%name)
+            self.assertTrue('h6k4orkac' in output,
+                            "Topic failed for %s" % name)
+            self.assertTrue('blaoulrao' in output, "Info failed for %s" % name)
+            self.assertTrue('alrkkcao4' in output, "Idea failed for %s" % name)
+            self.assertTrue('ntoircoa5' in output, "Help failed for %s" % name)
             self.assertTrue('http://bnatorkcao.net' in output,
-                                                  "Link(1) failed for %s"%name)
-            self.assertTrue('kroacaonteu' in output, "Link(2) failed for %s"%name)
+                            "Link(1) failed for %s" % name)
+            self.assertTrue('kroacaonteu' in output,
+                            "Link(2) failed for %s" % name)
             self.assertTrue('http://jrotjkor.net' in output,
-                                        "Link detection(1) failed for %s"%name)
+                            "Link detection(1) failed for %s" % name)
             self.assertTrue('krotroun' in output,
-                                        "Link detection(2) failed for %s"%name)
-            self.assertTrue('xrceoukrc' in output, "Action failed for %s"%name)
-            self.assertTrue('okbtrokr' in output, "Nick failed for %s"%name)
+                            "Link detection(2) failed for %s" % name)
+            self.assertTrue('xrceoukrc' in output,
+                            "Action failed for %s" % name)
+            self.assertTrue('okbtrokr' in output, "Nick failed for %s" % name)
 
             # Things which should only appear or not appear in the
             # notes (not the logs):
             if 'log' not in name:
-                self.assertTrue( 'ckmorkont' not in output,
-                              "Undo failed for %s"%name)
+                self.assertTrue('ckmorkont' not in output,
+                                "Undo failed for %s" % name)
                 self.assertTrue('topic_doeschange' in output,
-                             "Chair changing topic failed for %s"%name)
+                                "Chair changing topic failed for %s" % name)
                 self.assertTrue('topic_doesntchange' not in output,
-                             "Non-chair not changing topic failed for %s"%name)
+                                "Non-chair not changing topic failed for %s" % name)
                 self.assertTrue('topic_doesnt2change' not in output,
-                            "Un-chaired was able to chang topic for %s"%name)
+                                "Un-chaired was able to chang topic for %s" % name)
 
-    #def test_contents_test(self):
+    # def test_contents_test(self):
     #    with open('test-script-3.log.txt') as f:
     #       contents = f.read()
     #    M = process_meeting(contents=file('test-script-3.log.txt').read(),
@@ -164,57 +168,62 @@ class MeetBotTest(unittest.TestCase):
         self.test_css_file_embed()
         self.test_css_file()
         self.test_css_none()
+
     def test_css_embed(self):
-        extraConfig={ }
+        extraConfig = {}
         results = self.M_trivial(extraConfig={}).save()
         self.assertTrue('<link rel="stylesheet" ' not in results['.html'])
-        self.assertTrue('body {'                      in results['.html'])
+        self.assertTrue('body {' in results['.html'])
         self.assertTrue('<link rel="stylesheet" ' not in results['.log.html'])
-        self.assertTrue('body {'                      in results['.log.html'])
+        self.assertTrue('body {' in results['.log.html'])
+
     def test_css_noembed(self):
-        extraConfig={'cssEmbed_minutes':False,
-                     'cssEmbed_log':False,}
+        extraConfig = {'cssEmbed_minutes': False,
+                       'cssEmbed_log': False, }
         M = self.M_trivial(extraConfig=extraConfig)
         results = M.save()
-        self.assertTrue('<link rel="stylesheet" '     in results['.html'])
-        self.assertTrue('body {'                  not in results['.html'])
-        self.assertTrue('<link rel="stylesheet" '     in results['.log.html'])
-        self.assertTrue('body {'                  not in results['.log.html'])
+        self.assertTrue('<link rel="stylesheet" ' in results['.html'])
+        self.assertTrue('body {' not in results['.html'])
+        self.assertTrue('<link rel="stylesheet" ' in results['.log.html'])
+        self.assertTrue('body {' not in results['.log.html'])
+
     def test_css_file(self):
         tmpf = tempfile.NamedTemporaryFile()
         magic_string = '546uorck6o45tuo6'
         tmpf.write(magic_string)
         tmpf.flush()
-        extraConfig={'cssFile_minutes':  tmpf.name,
-                     'cssFile_log':      tmpf.name,}
+        extraConfig = {'cssFile_minutes':  tmpf.name,
+                       'cssFile_log':      tmpf.name, }
         M = self.M_trivial(extraConfig=extraConfig)
         results = M.save()
         self.assertTrue('<link rel="stylesheet" ' not in results['.html'])
-        self.assertTrue(magic_string                  in results['.html'])
+        self.assertTrue(magic_string in results['.html'])
         self.assertTrue('<link rel="stylesheet" ' not in results['.log.html'])
-        self.assertTrue(magic_string                  in results['.log.html'])
+        self.assertTrue(magic_string in results['.log.html'])
+
     def test_css_file_embed(self):
         tmpf = tempfile.NamedTemporaryFile()
         magic_string = '546uorck6o45tuo6'
         tmpf.write(magic_string)
         tmpf.flush()
-        extraConfig={'cssFile_minutes':  tmpf.name,
-                     'cssFile_log':      tmpf.name,
-                     'cssEmbed_minutes': False,
-                     'cssEmbed_log':     False,}
+        extraConfig = {'cssFile_minutes':  tmpf.name,
+                       'cssFile_log':      tmpf.name,
+                       'cssEmbed_minutes': False,
+                       'cssEmbed_log':     False, }
         M = self.M_trivial(extraConfig=extraConfig)
         results = M.save()
-        self.assertTrue('<link rel="stylesheet" '     in results['.html'])
-        self.assertTrue(tmpf.name                     in results['.html'])
-        self.assertTrue('<link rel="stylesheet" '     in results['.log.html'])
-        self.assertTrue(tmpf.name                     in results['.log.html'])
+        self.assertTrue('<link rel="stylesheet" ' in results['.html'])
+        self.assertTrue(tmpf.name in results['.html'])
+        self.assertTrue('<link rel="stylesheet" ' in results['.log.html'])
+        self.assertTrue(tmpf.name in results['.log.html'])
+
     def test_css_none(self):
         tmpf = tempfile.NamedTemporaryFile()
         magic_string = '546uorck6o45tuo6'
         tmpf.write(magic_string)
         tmpf.flush()
-        extraConfig={'cssFile_minutes':  'none',
-                     'cssFile_log':      'none',}
+        extraConfig = {'cssFile_minutes':  'none',
+                       'cssFile_log':      'none', }
         M = self.M_trivial(extraConfig=extraConfig)
         results = M.save()
         self.assertTrue('<link rel="stylesheet" ' not in results['.html'])
@@ -227,26 +236,26 @@ class MeetBotTest(unittest.TestCase):
             M = meeting.Meeting(channel='somechannel',
                                 network='somenetwork',
                                 owner='nobody',
-                     extraConfig={'filenamePattern':fnamepattern})
+                                extraConfig={'filenamePattern': fnamepattern})
             M.addline('nobody', '#startmeeting')
             return M
         # Test the %(channel)s and %(network)s commands in Supybot.
         M = getM('%(channel)s-%(network)s')
         filename = M.config.filename()
         assert filename.endswith('somechannel-somenetwork'), \
-               f"Filename not as expected: {filename}"
+            f"Filename not as expected: {filename}"
         # Test dates in filenames
         M = getM('%(channel)s-%%F')
         import time
         filename = M.config.filename()
         assert filename.endswith(time.strftime('somechannel-%F')),\
-               f"Filename not as expected: {filename}"
+            f"Filename not as expected: {filename}"
         # Test #meetingname in filenames
         M = getM('%(channel)s-%(meetingname)s')
         M.addline('nobody', '#meetingname blah1234')
         filename = M.config.filename()
         assert filename.endswith('somechannel-blah1234'),\
-               f"Filename not as expected: {filename}"
+            f"Filename not as expected: {filename}"
 
 
 if __name__ == '__main__':
