@@ -31,7 +31,7 @@
 from __future__ import annotations
 from . import writers
 import time
-from typing import Any, Tuple, TypeVar, TYPE_CHECKING, Union
+from typing import Any, Optional, Tuple, TypeVar, TYPE_CHECKING, Union
 if TYPE_CHECKING:
     from .meeting import Meeting
     from _typeshed import SupportsDivMod
@@ -63,7 +63,7 @@ def inbase(i: SupportsDivMod[_T_contra@divmod, _T_co@divmod], chars: str = 'abcd
 
 
 class _BaseItem(object):
-    itemtype = None
+    itemtype: Optional[str] = None
     starthtml = ''
     endhtml = ''
     startrst = ''
@@ -126,10 +126,7 @@ class _BaseItem(object):
 
 class Topic(_BaseItem):
     itemtype = 'TOPIC'
-    html_template = """<tr><td><a href='%(link)s#%(anchor)s'>%(time)s</a></td>
-        <th colspan=3>%(starthtml)sTopic: %(topic)s%(endhtml)s</th>
-        </tr>"""
-    html2_template = ("""%(starthtml)s%(topic)s%(endhtml)s """
+    html_template = ("""%(starthtml)s%(topic)s%(endhtml)s """
                       """<span class="details">"""
                       """(%(nick)s, """
                       """<a href='%(link)s#%(anchor)s'>%(time)s</a>)"""
@@ -162,9 +159,6 @@ class Topic(_BaseItem):
 
     def html(self, M: Meeting):
         return self.html_template % self._htmlrepl(M)
-
-    def html2(self, M: Meeting):
-        return self.html2_template % self._htmlrepl(M)
 
     def rst(self, M: Meeting):
         self.rstref = self.makeRSTref(M)
@@ -199,12 +193,9 @@ class Subtopic(Topic):
 
 class GenericItem(_BaseItem):
     itemtype = ''
-    html_template = """<tr><td><a href='%(link)s#%(anchor)s'>%(time)s</a></td>
-        <td>%(itemtype)s</td><td>%(nick)s</td><td>%(starthtml)s%(line)s%(endhtml)s</td>
-        </tr>"""
-    # html2_template = ("""<i>%(itemtype)s</i>: %(starthtml)s%(line)s%(endhtml)s """
+    # html_template = ("""<i>%(itemtype)s</i>: %(starthtml)s%(line)s%(endhtml)s """
     #                  """(%(nick)s, <a href='%(link)s#%(anchor)s'>%(time)s</a>)""")
-    html2_template = ("""<i class="itemtype">%(itemtype)s</i>: """
+    html_template = ("""<i class="itemtype">%(itemtype)s</i>: """
                       """<span class="%(itemtype)s">"""
                       """%(starthtml)s%(line)s%(endhtml)s</span> """
                       """<span class="details">"""
@@ -230,9 +221,6 @@ class GenericItem(_BaseItem):
     def html(self, M: Meeting):
         return self.html_template % self._htmlrepl(M)
 
-    def html2(self, M: Meeting):
-        return self.html2_template % self._htmlrepl(M)
-
     def rst(self, M: Meeting):
         self.rstref = self.makeRSTref(M)
         repl = self.get_replacements(M, escapewith=writers.rst)
@@ -255,7 +243,7 @@ class GenericItem(_BaseItem):
 
 class Info(GenericItem):
     itemtype = 'INFO'
-    html2_template = ("""<span class="%(itemtype)s">"""
+    html_template = ("""<span class="%(itemtype)s">"""
                       """%(starthtml)s%(line)s%(endhtml)s</span> """
                       """<span class="details">"""
                       """(%(nick)s, """
@@ -305,14 +293,11 @@ class Rejected(GenericItem):
 
 class Link(_BaseItem):
     itemtype = 'LINK'
-    html_template = """<tr><td><a href='%(link)s#%(anchor)s'>%(time)s</a></td>
-        <td>%(itemtype)s</td><td>%(nick)s</td><td>%(starthtml)s<a href="%(url)s">%(url_readable)s</a> %(line)s%(endhtml)s</td>
-        </tr>"""
-    # html2_template = ("""<i>%(itemtype)s</i>: %(starthtml)s<a href="%(url)s">%(url_readable)s</a> %(line)s%(endhtml)s """
+    # html_template = ("""<i>%(itemtype)s</i>: %(starthtml)s<a href="%(url)s">%(url_readable)s</a> %(line)s%(endhtml)s """
     #                  """(%(nick)s, <a href='%(link)s#%(anchor)s'>%(time)s</a>)""")
-    # html2_template = ("""<i>%(itemtype)s</i>: %(starthtml)s<a href="%(url)s">%(url_readable)s</a> %(line)s%(endhtml)s """
+    # html_template = ("""<i>%(itemtype)s</i>: %(starthtml)s<a href="%(url)s">%(url_readable)s</a> %(line)s%(endhtml)s """
     #                  """(<a href='%(link)s#%(anchor)s'>%(nick)s</a>, %(time)s)""")
-    html2_template = ("""%(starthtml)s<a href="%(url)s">%(url_readable)s</a> %(line)s%(endhtml)s """
+    html_template = ("""%(starthtml)s<a href="%(url)s">%(url_readable)s</a> %(line)s%(endhtml)s """
                       """<span class="details">"""
                       """(%(nick)s, """
                       """<a href='%(link)s#%(anchor)s'>%(time)s</a>)"""
@@ -341,9 +326,6 @@ class Link(_BaseItem):
 
     def html(self, M: Meeting):
         return self.html_template % self._htmlrepl(M)
-
-    def html2(self, M: Meeting):
-        return self.html2_template % self._htmlrepl(M)
 
     def rst(self, M: Meeting):
         self.rstref = self.makeRSTref(M)

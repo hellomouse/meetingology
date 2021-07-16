@@ -497,7 +497,7 @@ class HTML(_BaseWriter, _CSSmanager):
         inSublist = False
         inSubsublist = False
         for m in M.minutes:
-            item = f"<li>{m.html2(M)}"
+            item = f"<li>{m.html(M)}"
             if m.itemtype == "TOPIC":
                 if inSublist:
                     MeetingItems.append(indentItem("</ol>", 4))
