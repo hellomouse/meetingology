@@ -41,6 +41,7 @@ from supybot import utils, log as supylog
 from importlib import reload
 from . import config
 from . import writers
+from .writers import Writers
 from . import items
 
 reload(items)
@@ -709,7 +710,7 @@ class Config(object):
     moinFullLogs = False
 
     # This tells which writers write out which to extensions.
-    writer_map: dict[str, writers.Writers] = {
+    writer_map: dict[str, Writers] = {
         '.log.html': writers.HTMLlog,
         '.html': writers.HTML,
         '.rst': writers.ReST,
@@ -729,7 +730,7 @@ class Config(object):
             setattr(self, k, v)
 
     def setWriters(self):
-        self.writers: dict[str, writers.Writers] = {}
+        self.writers: dict[str, Writers] = {}
         if self.writeRawLog:
             self.writers['.log.txt'] = writers.TextLog(self.M)
         for extension, writer in self.writer_map.items():
