@@ -175,8 +175,7 @@ class MeetingCommands(object):
             if not chair:
                 continue
             if chair not in self.chairs:
-                if self._channelNicks and \
-                        self.config.enc(chair) not in self._channelNicks():
+                if self._channelNicks and chair not in self._channelNicks():
                     self.reply("Warning: '%s' not in channel" % chair)
                 self.addnick(chair, lines=0)
                 self.chairs[chair] = True
@@ -333,8 +332,7 @@ class MeetingCommands(object):
                 self.reply("Everyone can now vote")
                 return
             if voter not in self.voters:
-                if self._channelNicks and \
-                        self.config.enc(voter) not in self._channelNicks():
+                if self._channelNicks and voter not in self._channelNicks():
                     self.reply("Warning: '%s' not in channel" % voter)
                 self.addnick(voter, lines=0)
                 self.voters[voter] = True
@@ -439,8 +437,6 @@ class Meeting(MeetingCommands, object):
         self.network = network
         self.currenttopic = ""
         self.oldtopic = oldtopic
-        if self.oldtopic:
-            self.oldtopic = self.config.dec(self.oldtopic)
         self.lines = []
         self.minutes = []
         self.attendees = {}
@@ -467,21 +463,21 @@ class Meeting(MeetingCommands, object):
     def reply(self, x: str):
         """Send a reply to the channel."""
         if hasattr(self, '_sendReply') and not self._lurk:
-            self._sendReply(self.config.enc(x))
+            self._sendReply(x)
         else:
-            supylog.debug("REPLY: %s" % self.config.enc(x))
+            supylog.debug("REPLY: %s" % x)
 
     def privateReply(self, nick: str, x: str):
         """Send a reply to a nick."""
         if hasattr(self, '_sendPrivateReply') and not self._lurk:
-            self._sendPrivateReply(self.config.enc(nick), self.config.enc(x))
+            self._sendPrivateReply(nick, x)
 
     def topic(self, x: str):
         """Set the topic in the channel."""
         if hasattr(self, '_setTopic') and not self._lurk and self.botIsOp:
-            self._setTopic(self.config.enc(x))
+            self._setTopic(x)
         else:
-            supylog.debug("TOPIC: %s" % self.config.enc(x))
+            supylog.debug("TOPIC: %s" % x)
 
     def settopic(self):
         """The actual code to set the topic."""
@@ -531,8 +527,6 @@ class Meeting(MeetingCommands, object):
         if not time_:
             time_ = time.localtime()
         linenum = self.addrawline(nick, line, time_)
-        nick = self.config.dec(nick)
-        line = self.config.dec(line)
         self.isop = isop
         # Handle any commands given in the line
         matchobj = self.config.command_RE.match(line)
@@ -571,8 +565,6 @@ class Meeting(MeetingCommands, object):
 
     def addrawline(self, nick: str, line: str, time_=None):
         """This adds a line to the log, bypassing command execution."""
-        nick = self.config.dec(nick)
-        line = self.config.dec(line)
         self.addnick(nick)
         line = line.strip('\x01')  # \x01 is present in ACTIONs
         # Setting a custom time is useful when replaying logs,
@@ -703,13 +695,7 @@ class Config(object):
     # Input/output codecs.
     input_codec = 'utf-8'
     output_codec = 'utf-8'
-    # Functions to do the i/o conversion.
 
-    def enc(self, text):
-        return text
-
-    def dec(self, text):
-        return text
     # Write out select logfiles
     update_realtime = True
     # CSS configs
