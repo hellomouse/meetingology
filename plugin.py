@@ -42,11 +42,18 @@ from . import meeting
 try:
     meeting_cache
 except NameError:
-    meeting_cache = {}
+    meeting_cache: dict[tuple[str, str], meeting.Meeting] = {}
 try:
     recent_meetings
 except NameError:
-    recent_meetings = []
+    recent_meetings: list[tuple[str, str, str]] = []
+
+
+class Irc(callbacks.ReplyIrcProxy, irclib.Irc):
+    """Class to represent exactly the `irc` argument given to plugin command functions.
+    Only used for type hints.
+    """
+    pass
 
 
 class MeetBot(callbacks.Plugin):
@@ -64,11 +71,12 @@ class MeetBot(callbacks.Plugin):
     # questions.
 
     # This captures all messages coming into the bot.
-    def doPrivmsg(self, irc: irclib.Irc, msg: ircmsgs.IrcMsg):
+    def doPrivmsg(self, irc: Irc, msg: ircmsgs.IrcMsg):
         nick: str = msg.nick
         channel: str = msg.channel
         network: str = irc.network
         payload: str = msg.args[1].strip()
+        chanState: irclib.ChannelState = irc.state.channels[channel]
 
         # These callbacks are used to send data to the channel
         def _setTopic(x: str):
@@ -80,13 +88,13 @@ class MeetBot(callbacks.Plugin):
         def _sendPrivateReply(nick: str, x: str):
             irc.queueMsg(ircmsgs.privmsg(nick, x))
 
-        def _channelNicks() -> list[str]:
-            return irc.state.channels[channel].users
+        def _channelNicks() -> set[str]:
+            return chanState.users
 
         def isChair(nick: str) -> bool:
             """Is the nick a chair?"""
             return (nick == M.owner or nick in M.chairs or
-                    nick in irc.state.channels[channel].ops)
+                    chanState.isOp(nick))
 
         logfile_RE = re.compile(
             r'^.*/([^.]+)\.([0-9]{4}(-[0-9]{2}){3}(\.[0-9]{2}){1,2})\..*$')
@@ -185,13 +193,12 @@ class MeetBot(callbacks.Plugin):
         if not M or M._meetingIsOver:
             return
         # Add line to our meeting buffer
-        isop = (nick in irc.state.channels[channel].ops)
-        M.addline(nick, payload, isop)
+        M.addline(nick, payload, chanState.isOp(nick))
         # End meeting if requested
         if M._meetingIsOver:
             del meeting_cache[Mkey]
 
-    def vote(self, irc: irclib.Irc, msg: str, args: list[str], vote: str, channel: str):
+    def vote(self, irc: Irc, msg: str, args: list[str], vote: str, channel: str):
         """<+1|-1|+0> <channel>
 
         Vote by private message."""
@@ -212,7 +219,7 @@ class MeetBot(callbacks.Plugin):
                         irc.reply("No active meetings in this channel")
     vote = wrap(vote, ["something", "channel"])
 
-    def outFilter(self, irc: irclib.Irc, msg: ircmsgs.IrcMsg):
+    def outFilter(self, irc: Irc, msg: ircmsgs.IrcMsg):
         """Log outgoing messages from Supybot."""
         # Catch Supybot's own outgoing messages to log them.  Run the
         # whole thing in a try: block to prevent all output from
@@ -237,7 +244,7 @@ class MeetBot(callbacks.Plugin):
     # These are admin commands, for use by the bot owner when there
     # are many channels which may need to be independently managed.
 
-    def listmeetings(self, irc: irclib.Irc, msg: ircmsgs.IrcMsg, args: list[str]):
+    def listmeetings(self, irc: Irc, msg: ircmsgs.IrcMsg, args: list[str]):
         """
 
         List all currently active meetings."""
@@ -248,7 +255,7 @@ class MeetBot(callbacks.Plugin):
             irc.reply(reply)
     listmeetings = wrap(listmeetings, ['admin'])
 
-    def savemeetings(self, irc: irclib.Irc, msg: ircmsgs.IrcMsg, args: list[str]):
+    def savemeetings(self, irc: Irc, msg: ircmsgs.IrcMsg, args: list[str]):
         """
 
         Save all currently active meetings."""
@@ -259,7 +266,7 @@ class MeetBot(callbacks.Plugin):
         irc.reply("Saved %d meetings" % len(meeting_cache.items()))
     savemeetings = wrap(savemeetings, ['admin'])
 
-    def addchair(self, irc: irclib.Irc, msg: ircmsgs.IrcMsg, args: list[str], channel: str, network: str, nick: str):
+    def addchair(self, irc: Irc, msg: ircmsgs.IrcMsg, args: list[str], channel: str, network: str, nick: str):
         """<channel> <network> <nick>
 
         Add a nick as a chair to the meeting."""
@@ -273,7 +280,7 @@ class MeetBot(callbacks.Plugin):
         irc.reply("Chair added: %s on (%s, %s)" % (nick, channel, network))
     addchair = wrap(addchair, ['admin', "channel", "something", "nick"])
 
-    def deletemeeting(self, irc: irclib.Irc, msg: ircmsgs.IrcMsg, args: list[str], channel: str, network: str, save: bool):
+    def deletemeeting(self, irc: Irc, msg: ircmsgs.IrcMsg, args: list[str], channel: str, network: str, save: bool):
         """<channel> <network> <saveit=True>
 
         Delete a meeting from the cache.  If save is given, save the
@@ -293,7 +300,7 @@ class MeetBot(callbacks.Plugin):
     deletemeeting = wrap(deletemeeting, ['admin', "channel", "something",
                                          optional("boolean", True)])
 
-    def recent(self, irc: irclib.Irc, msg: ircmsgs.IrcMsg, args: list[str]):
+    def recent(self, irc: Irc, msg: ircmsgs.IrcMsg, args: list[str]):
         """
 
         List recent meetings for admin purposes.
@@ -312,7 +319,7 @@ class MeetBot(callbacks.Plugin):
             irc.reply("No recent meetings in internal state")
     recent = wrap(recent, ['admin'])
 
-    def pingall(self, irc: irclib.Irc, msg: ircmsgs.IrcMsg, args: list[str], message: Union[str, None]):
+    def pingall(self, irc: Irc, msg: ircmsgs.IrcMsg, args: list[str], message: Union[str, None]):
         """<text>
 
         Send a broadcast ping to all users on the channel.
@@ -335,8 +342,8 @@ class MeetBot(callbacks.Plugin):
 
         # ping all nicks in lines of about 256
         nickline = ''
-        nicks = sorted(irc.state.channels[channel].users,
-                       key=lambda x: x.lower())
+        chanState: irclib.ChannelState = irc.state.channels[channel]
+        nicks: list[str] = sorted(chanState.users, key=lambda x: x.lower())
         for nick in nicks:
             nickline += nick + ' '
             if len(nickline) > 256:
